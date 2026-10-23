@@ -2,7 +2,7 @@
  * Salsa on2 basic step as foot positions on the beat annotations.
  *
  * Coordinates are in the dancer's own frame: x = the dancer's right (+), y = forward (+), one unit is
- * about a step. Each table lists where a foot is at the moment count 1..8 sounds; between two beats a
+ * about a step (the small steps on 1 and 5 are 0.2, the big steps on 2 and 6 are 1.25). Each table lists where a foot is at the moment count 1..8 sounds; between two beats a
  * foot glides from its position at one count to its position at the next, so a foot that steps on
  * count n is already on its way during the beat before it and lands exactly on the beat.
  * On 4 and 8 nothing moves: those are holds, and the free foot only starts travelling after them.
@@ -18,8 +18,8 @@
 (function (root) {
   const LEFT = -0.5, RIGHT = 0.5;
   // y of each foot at counts 1..8 (x is fixed per foot)
-  const LEADER_L = [-0.4, -0.4, -0.4, -0.4, -0.4, 1.0, 1.0, 1.0];
-  const LEADER_R = [0.4, -1.0, -1.0, -1.0, 0.4, 0.4, 0.4, 0.4];
+  const LEADER_L = [-0.2, -0.2, -0.2, -0.2, -0.2, 1.25, 1.25, 1.25];
+  const LEADER_R = [0.2, -1.25, -1.25, -1.25, 0.2, 0.2, 0.2, 0.2];
   const column = (x, ys) => ys.map((y) => [x, y]);
 
   const FEET = {

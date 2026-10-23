@@ -125,8 +125,8 @@
   // "View as follower" swaps the two places, so the follower's steps are seen from behind.
   const KINDS = { leader: { kind: "sneaker", label: "Leader" }, follower: { kind: "heel", label: "Follower" } };
   const SPOTS = {
-    near: { cx: W / 2, base: 410, dir: 1, labelY: H - 16 },
-    far: { cx: W / 2, base: 150, dir: -1, labelY: 28 },
+    near: { cx: W / 2, base: 395, dir: 1, labelY: H - 16 },
+    far: { cx: W / 2, base: 165, dir: -1, labelY: 28 },
   };
   let followerView = store.get("view", "leader") === "follower";
   const dancerOf = (role) => ({ ...KINDS[role], ...SPOTS[(role === "follower") === followerView ? "near" : "far"] });

@@ -14,16 +14,16 @@ assert.equal(beatAt(beats.map((b) => b[0]), 1.74), 1);
 const near = (a, b) => assert.ok(Math.abs(a - b) < 1e-9, `${a} != ${b}`);
 
 // leader, count by count
-near(at(0).leader.L.y, -0.4);                       // 1: left foot a bit to the back
-near(at(1).leader.R.y, -1.0);                       // 2: right foot to the very back
+near(at(0).leader.L.y, -0.2);                       // 1: left foot a bit to the back
+near(at(1).leader.R.y, -1.25);                       // 2: right foot to the very back
 near(at(2).leader.L.y, at(0).leader.L.y);           // 3: left foot on the same spot as on 1
-near(at(4).leader.R.y, 0.4);                        // 5: right foot a bit in front of the center
-near(at(5).leader.L.y, 1.0);                        // 6: left foot steps forward
+near(at(4).leader.R.y, 0.2);                        // 5: right foot a bit in front of the center
+near(at(5).leader.L.y, 1.25);                        // 6: left foot steps forward
 near(at(6).leader.R.y, at(4).leader.R.y);           // 7: right foot on the same spot as on 5
 // follower: mirrored (right foot forward on 1)
-near(at(0).follower.R.y, 0.4);
-near(at(1).follower.L.y, 1.0);
-near(at(5).follower.R.y, -1.0);
+near(at(0).follower.R.y, 0.2);
+near(at(1).follower.L.y, 1.25);
+near(at(5).follower.R.y, -1.25);
 
 // feet hold still on 4 and 8 (between counts 3-4 and 7-8) ...
 for (const n of [2, 6]) {
@@ -58,12 +58,12 @@ assert.deepEqual(Object.keys(LANDS.leader), Object.keys(LANDS.follower));
 // in front of the center), then swinging into the first step during the beat before it
 const idle = frame(beats, 0.2);
 assert.equal(idle.count, null);
-near(idle.leader.L.y, 1.0);
-near(idle.leader.R.y, 0.4);
+near(idle.leader.L.y, 1.25);
+near(idle.leader.R.y, 0.2);
 assert.equal(idle.leader.L.lift, 0);
 const lead = frame(beats, 0.75);
 assert.ok(lead.leader.L.lift > 0.9);
-near(frame(beats, 1.0).leader.L.y, -0.4);
+near(frame(beats, 1.0).leader.L.y, -0.2);
 
 const gap = frame([[1, 1], [10, 2]], 5);
 assert.equal(gap.leader.L.lift, 0);
