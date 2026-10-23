@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Salsa On2 Feet</title>
+<meta name="description" content="Tu Con Él by Frankie Ruiz with an animation of the salsa on2 basic step, driven by hand-annotated beats.">
+<style>
+  :root {
+    --bg: #f6f3ee; --fg: #1d1a17; --muted: #6d655d; --panel: #ffffff; --line: #ddd5ca;
+    --accent: #d8392b; --accent-fg: #ffffff;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #17140f; --fg: #f1ece4; --muted: #a39a8f; --panel: #221e18; --line: #3a342b;
+      --accent: #ef6a4d; --accent-fg: #1a0f0b;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--fg);
+         font: 16px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  main { max-width: 760px; margin: 0 auto; padding: 24px 16px 48px; }
+  h1 { font-size: 1.5rem; margin: 0 0 2px; }
+  .sub { color: var(--muted); margin: 0 0 16px; }
+  .video { position: relative; aspect-ratio: 16 / 9; background: #000; border-radius: 10px; overflow: hidden; }
+  .video iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+
+  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 10px;
+           padding: 12px 14px; margin-top: 14px; }
+  .panel h2 { font-size: .8rem; letter-spacing: .06em; text-transform: uppercase; color: var(--muted);
+              margin: 0 0 8px; font-weight: 600; }
+  .mix { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 10px 18px; }
+  label { display: grid; gap: 2px; font-size: .9rem; }
+  label .row { display: flex; justify-content: space-between; }
+  label .val { color: var(--muted); font-variant-numeric: tabular-nums; }
+  input[type=range] { width: 100%; accent-color: var(--accent); }
+  select, button { font: inherit; padding: 5px 9px; border-radius: 7px; border: 1px solid var(--line);
+                   background: var(--bg); color: var(--fg); cursor: pointer; }
+  button.on { background: var(--accent); border-color: var(--accent); color: var(--accent-fg); }
+  .hint { color: var(--muted); font-size: .85rem; margin: 8px 0 0; }
+
+  .stage { margin-top: 14px; background: #2a1d14; border-radius: 10px; overflow: hidden; }
+  canvas { display: block; width: 100%; height: auto; }
+  .counts { display: grid; grid-template-columns: repeat(8, 1fr); gap: 6px; margin-top: 10px; }
+  .counts span { text-align: center; padding: 6px 0; border-radius: 7px; border: 1px solid var(--line);
+                 background: var(--panel); font-weight: 600; font-variant-numeric: tabular-nums;
+                 transition: background .08s, color .08s; }
+  .counts span.pause { color: var(--muted); font-weight: 400; }
+  .counts span.now { background: var(--accent); border-color: var(--accent); color: var(--accent-fg); }
+  .legend { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 8px 18px;
+            font-size: .9rem; }
+  .legend b { white-space: nowrap; }
+  .status { color: var(--muted); font-size: .85rem; margin-top: 8px; min-height: 1.3em; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Salsa On2 Feet</h1>
+  <p class="sub">Tu Con Él · Frankie Ruiz &mdash; the feet follow hand-annotated beats.</p>
+
+  <div class="video"><div id="player"></div></div>
+
+  <section class="panel" aria-label="Mixing">
+    <h2>Mixing</h2>
+    <div class="mix">
+      <label>
+        <span class="row"><span>Music</span><span class="val" id="musicVal">100%</span></span>
+        <input id="music" type="range" min="0" max="100" value="100">
+      </label>
+      <label>
+        <span class="row"><span>Beat clicks</span><span class="val" id="clickVal">70%</span></span>
+        <input id="click" type="range" min="0" max="100" value="70">
+      </label>
+      <label>
+        <span class="row"><span>Clicks on</span></span>
+        <select id="mode">
+          <option value="all">every beat (1 accented)</option>
+          <option value="steps">steps only (not 4 and 8)</option>
+          <option value="ones">1 and 5 only</option>
+        </select>
+      </label>
+      <label>
+        <span class="row"><span>Sync</span><span class="val" id="syncVal">0 ms</span></span>
+        <input id="sync" type="range" min="-1500" max="1500" step="5" value="0">
+      </label>
+    </div>
+    <p class="hint">
+      Sync moves the beats against the video: if the clicks come too late, drag it to the left; if too early, to the right.
+      <button id="syncReset" type="button">Reset sync</button>
+    </p>
+    <p class="status" id="audioStatus" role="status"></p>
+  </section>
+
+  <div class="stage"><canvas id="stage" width="640" height="560" aria-label="Animation of the salsa on2 basic step"></canvas></div>
+  <div class="counts" id="counts" aria-hidden="true"></div>
+
+  <section class="panel" aria-label="The steps">
+    <h2>The basic step</h2>
+    <div class="legend">
+      <div><b>Leader &middot; sneakers</b><br>1 L back · 2 R replace · 3 L together · 4 pause · 5 R forward · 6 L replace · 7 R together · 8 pause</div>
+      <div><b>Follower &middot; heels</b><br>1 R forward · 2 L replace · 3 R together · 4 pause · 5 L back · 6 R replace · 7 L together · 8 pause</div>
+    </div>
+    <p class="hint">Top view; the leader is at the bottom, the follower at the top, facing each other. The ring marks the foot that takes the weight on each count.</p>
+  </section>
+</main>
+
+<script src="beats.js"></script>
+<script src="dance.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
