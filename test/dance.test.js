@@ -63,9 +63,18 @@ for (const role of ["leader", "follower"]) {
   assert.equal(idle[role].L.lift, 0);
 }
 const lead = frame(beats, 0.75);
-assert.ok(lead.leader.L.lift > 0.9);
+assert.ok(lead.leader.L.lift > 0.9);                    // the left foot steps back into count 1
+assert.equal(lead.leader.R.lift, 0);                    // the right foot stays centered ...
+near(lead.leader.R.y, 0);
 near(frame(beats, 1.0).leader.L.y, -0.3);
-
+near(frame(beats, 1.0).leader.R.y, 0);                  // ... also on count 1 itself
+assert.ok(at(0, 0.5).leader.R.lift > 0.9);              // and steps on its own count, 2
+assert.equal(at(0, 0.5).leader.L.lift, 0);
+near(at(0, 0.999999).leader.R.y, -1.25);
+// the follower: right foot first, left foot centered until count 2
+near(frame(beats, 1.0).follower.R.y, 0.3);
+near(frame(beats, 1.0).follower.L.y, 0);
+assert.equal(frame(beats, 0.75).follower.L.lift, 0);
 
 // an unexpected next label (here 2 -> 6): back to both feet centered, then into the position of 6 on its beat
 const jumpy = [[1, 1], [1.5, 2], [2, 6], [2.5, 7], [3, 8]];
@@ -74,8 +83,12 @@ for (const role of ["leader", "follower"]) {
   near(centered[role].L.y, 0); near(centered[role].R.y, 0);
   near(centered[role].L.x, -0.5); near(centered[role].R.x, 0.5);
 }
-assert.ok(frame(jumpy, 1.55).leader.L.lift > 0);        // on its way right after the beat
-assert.ok(frame(jumpy, 1.85).leader.L.lift > 0);        // and moving into the new position
+assert.ok(frame(jumpy, 1.55).leader.R.lift > 0);        // the right foot (farther away) goes first ...
+assert.equal(frame(jumpy, 1.55).leader.L.lift, 0);
+assert.ok(frame(jumpy, 1.65).leader.L.lift > 0);        // ... then the left one
+assert.ok(frame(jumpy, 1.85).leader.L.lift > 0);        // and the left foot steps into the new position
+assert.equal(frame(jumpy, 1.85).leader.R.lift, 0);      // while the right foot stays centered
+near(frame(jumpy, 2).leader.R.y, 0);
 near(frame(jumpy, 1.999999).leader.L.y, frame(jumpy, 2).leader.L.y);
 near(frame(jumpy, 2).leader.L.y, 1.25);                 // pose of 6
 // an expected pair still takes the whole interval (1 -> 2 from t = 1)
@@ -89,5 +102,17 @@ for (const role of ["leader", "follower"]) {
 }
 assert.ok(frame(gapBeats, 5).leader.R.lift < 1e-9);
 near(frame(gapBeats, 9.999999999).leader.R.y, frame(gapBeats, 10).leader.R.y);
+
+// never two feet moving at once, for either dancer: steady dancing, a jump in the labels, a long gap
+for (const seq of [beats, jumpy, gapBeats]) {
+  const end = seq[seq.length - 1][0] + 0.3;
+  for (let time = 0; time < end; time += 0.01) {
+    const f = frame(seq, time);
+    for (const role of ["leader", "follower"]) {
+      const moving = ["L", "R"].filter((foot) => f[role][foot].lift > 1e-6);
+      assert.ok(moving.length <= 1, `${role} moves both feet at t=${time.toFixed(2)}`);
+    }
+  }
+}
 
 console.log("dance.js: all checks passed");

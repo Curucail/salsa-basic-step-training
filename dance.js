@@ -45,28 +45,49 @@
     return k;
   }
 
+  const FOOT = ["L", "R"];
   const stateAt = (role, count) => ({ L: FEET[role].L[count - 1], R: FEET[role].R[count - 1] });
   const CENTERED = { L: [-0.5, 0], R: [0.5, 0] };   // both feet centered: where the dancers start
 
-  /** Both feet moving from the positions `a` to `b` (each {L: [x, y], R: [x, y]}); `to` is the count reached. */
-  function blend(role, a, b, phase, to) {
-    const out = {};
+  /** One foot moving from `a` to `b` ([x, y] each); `retake`: it steps back onto the same spot. */
+  function footMove(a, b, phase, retake) {
+    const moving = a[0] !== b[0] || a[1] !== b[1];
     const e = smooth(phase);
-    for (const foot of ["L", "R"]) {
-      const moving = a[foot][0] !== b[foot][0] || a[foot][1] !== b[foot][1];
-      const retakes = !moving && LANDS[role][to] === foot;   // steps back onto the same spot
-      out[foot] = {
-        x: a[foot][0] + (b[foot][0] - a[foot][0]) * e,
-        y: a[foot][1] + (b[foot][1] - a[foot][1]) * e,
-        lift: moving ? Math.sin(Math.PI * phase) : retakes ? 0.3 * Math.sin(Math.PI * phase) : 0,
-      };
-    }
-    return out;
+    return {
+      x: a[0] + (b[0] - a[0]) * e,
+      y: a[1] + (b[1] - a[1]) * e,
+      lift: moving ? Math.sin(Math.PI * phase) : retake ? 0.3 * Math.sin(Math.PI * phase) : 0,
+    };
   }
 
   /** Both feet of a dancer while moving from count `from` to count `to` (1-8), `phase` 0..1. */
   function pose(role, from, to, phase) {
-    return blend(role, stateAt(role, from), stateAt(role, to), phase, to);
+    const a = stateAt(role, from), b = stateAt(role, to), out = {};
+    for (const foot of FOOT) out[foot] = footMove(a[foot], b[foot], phase, LANDS[role][to] === foot);
+    return out;
+  }
+
+  /**
+   * Which feet have stepped since the dancers last stood centered (at the start, or after an
+   * unexpected label). A foot that has not stepped yet stays centered until its own step: only one
+   * foot moves at a time.
+   */
+  const analyses = new WeakMap();
+  function analyze(beats, maxGap) {
+    let an = analyses.get(beats);
+    if (an && an.maxGap === maxGap) return an;
+    const expected = beats.map((b, i) => i < beats.length - 1 && beats[i + 1][1] === (b[1] % 8) + 1
+                                          && beats[i + 1][0] - b[0] <= maxGap);
+    const landed = { leader: { L: [], R: [] }, follower: { L: [], R: [] } };
+    beats.forEach((b, i) => {
+      const entry = i === 0 || !expected[i - 1];
+      for (const role of ["leader", "follower"]) for (const foot of FOOT) {
+        landed[role][foot][i] = (!entry && landed[role][foot][i - 1]) || LANDS[role][b[1]] === foot;
+      }
+    });
+    an = { maxGap, expected, landed };
+    analyses.set(beats, an);
+    return an;
   }
 
   /**
@@ -74,11 +95,12 @@
    *
    * Expected counts (1->2, ..., 8->1) are timed exactly on the beat. When the next label is not the
    * expected one (a relabelled stretch, a missing beat) or the annotation has a gap longer than
-   * `maxGap` seconds, the dancers go back to both feet centered right away (in `FAST_SECONDS` at
-   * most), wait there, and move into the position of the next label during the beat before it, so
-   * nothing jumps on the beat.
-   * Before the first beat the dancers stand with both feet centered and move into the position of
-   * the first count during the beat before it, like every other step.
+   * `maxGap` seconds, the dancers go back to both feet centered right away (one foot after the other,
+   * in `FAST_SECONDS` at most), wait there, and move into the position of the next label during the
+   * beat before it, so nothing jumps on the beat.
+   * Before the first beat the dancers stand with both feet centered and the foot that takes the
+   * weight on the first count steps into place during the beat before it; the other foot stays
+   * centered until its own step.
    */
   const FAST_SECONDS = 0.35;
 
@@ -86,35 +108,63 @@
     const times = beats.map((b) => b[0]);
     const k = beatAt(times, t);
     const still = { landing: { leader: null, follower: null }, glow: 0 };
+    const roles = ["leader", "follower"];
+    const enter = (role, to, phase) => {            // from centered into the position of count `to`
+      const out = {};
+      for (const foot of FOOT) {
+        const lands = LANDS[role][to] === foot;
+        out[foot] = footMove(CENTERED[foot], lands ? stateAt(role, to)[foot] : CENTERED[foot], phase, false);
+      }
+      return out;
+    };
     if (k < 0) {
       const to = beats[0][1];
       const period = beats.length > 1 ? beats[1][0] - beats[0][0] : 0.5;
       const phase = Math.min(Math.max((t - (beats[0][0] - period)) / period, 0), 1);
-      const lead = (role) => blend(role, CENTERED, stateAt(role, to), phase, to);
-      return { k, count: null, phase, ...still, leader: lead("leader"), follower: lead("follower") };
+      return { k, count: null, phase, ...still, leader: enter("leader", to, phase), follower: enter("follower", to, phase) };
     }
+    const an = analyze(beats, maxGap);
+    const from = beats[k][1];
+    // where a foot is at beat k: its table position once it has stepped, centered before that
+    const at = (role, foot) => (an.landed[role][foot][k] ? stateAt(role, from)[foot] : CENTERED[foot]);
     if (k === beats.length - 1) {
-      const count = beats[k][1];
-      return { k, count, phase: 0, ...still,
-               leader: pose("leader", count, count, 0), follower: pose("follower", count, count, 0) };
+      const rest = (role) => ({ L: footMove(at(role, "L"), at(role, "L"), 0, false),
+                                R: footMove(at(role, "R"), at(role, "R"), 0, false) });
+      return { k, count: from, phase: 0, ...still, leader: rest("leader"), follower: rest("follower") };
     }
-    const from = beats[k][1], to = beats[k + 1][1];
+    const to = beats[k + 1][1];
     const interval = times[k + 1] - times[k], elapsed = t - times[k];
-    const expected = to === (from % 8) + 1 && interval <= maxGap;
     const landing = { leader: LANDS.leader[from] || null, follower: LANDS.follower[from] || null };
     const glow = Math.max(0, 1 - (elapsed / interval) * 1.6);
-    if (expected) {
-      const phase = elapsed / interval;
-      return { k, count: from, phase, landing, glow,
-               leader: pose("leader", from, to, phase), follower: pose("follower", from, to, phase) };
+    const out = { k, count: from, phase: elapsed / interval, landing, glow };
+    if (an.expected[k]) {
+      for (const role of roles) {
+        out[role] = {};
+        for (const foot of FOOT) {
+          const lands = LANDS[role][to] === foot;
+          const target = an.landed[role][foot][k] || lands ? stateAt(role, to)[foot] : CENTERED[foot];
+          out[role][foot] = footMove(at(role, foot), target, elapsed / interval, lands);
+        }
+      }
+      return out;
     }
-    // unexpected next label: to the centered stance, wait, then into the next position
+    // unexpected next label: to the centered stance (one foot after the other), wait, then step into place
     const toCenter = Math.min(FAST_SECONDS, 0.4 * interval);
     const fromCenter = Math.min(FAST_SECONDS, interval - toCenter);
-    const go = (role) => (elapsed < interval - fromCenter
-      ? blend(role, stateAt(role, from), CENTERED, Math.min(elapsed / toCenter, 1), null)
-      : blend(role, CENTERED, stateAt(role, to), (elapsed - (interval - fromCenter)) / fromCenter, to));
-    return { k, count: from, phase: elapsed / interval, landing, glow, leader: go("leader"), follower: go("follower") };
+    for (const role of roles) {
+      if (elapsed >= interval - fromCenter) {
+        out[role] = enter(role, to, (elapsed - (interval - fromCenter)) / fromCenter);
+        continue;
+      }
+      const far = (foot) => Math.hypot(at(role, foot)[0] - CENTERED[foot][0], at(role, foot)[1] - CENTERED[foot][1]);
+      const order = far("L") >= far("R") ? ["L", "R"] : ["R", "L"];     // the farther foot goes first
+      out[role] = {};
+      order.forEach((foot, i) => {
+        const phase = Math.min(Math.max((elapsed - (i * toCenter) / 2) / (toCenter / 2), 0), 1);
+        out[role][foot] = footMove(at(role, foot), CENTERED[foot], phase, false);
+      });
+    }
+    return out;
   }
 
   const api = { FEET, LANDS, beatAt, pose, frame };
