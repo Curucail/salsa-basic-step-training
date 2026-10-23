@@ -2,7 +2,7 @@
  * Salsa on2 basic step as foot positions on the beat annotations.
  *
  * Coordinates are in the dancer's own frame: x = the dancer's right (+), y = forward (+), one unit is
- * about a step (the small steps on 1 and 5 are 0.2, the big steps on 2 and 6 are 1.25). Each table lists where a foot is at the moment count 1..8 sounds; between two beats a
+ * about a step (the small steps on 1 and 5 are 0.3, the big steps on 2 and 6 are 1.25). Each table lists where a foot is at the moment count 1..8 sounds; between two beats a
  * foot glides from its position at one count to its position at the next, so a foot that steps on
  * count n is already on its way during the beat before it and lands exactly on the beat.
  * On 4 and 8 nothing moves: those are holds, and the free foot only starts travelling after them.
@@ -18,8 +18,8 @@
 (function (root) {
   const LEFT = -0.5, RIGHT = 0.5;
   // y of each foot at counts 1..8 (x is fixed per foot)
-  const LEADER_L = [-0.2, -0.2, -0.2, -0.2, -0.2, 1.25, 1.25, 1.25];
-  const LEADER_R = [0.2, -1.25, -1.25, -1.25, 0.2, 0.2, 0.2, 0.2];
+  const LEADER_L = [-0.3, -0.3, -0.3, -0.3, -0.3, 1.25, 1.25, 1.25];
+  const LEADER_R = [0.3, -1.25, -1.25, -1.25, 0.3, 0.3, 0.3, 0.3];
   const column = (x, ys) => ys.map((y) => [x, y]);
 
   const FEET = {
@@ -64,10 +64,16 @@
 
   /**
    * What the dancers look like at time t. `beats` is [[time, count], ...] ascending.
-   * Gaps in the annotation longer than `maxGap` seconds are treated as standing still.
+   *
+   * Expected counts (1->2, ..., 8->1) are timed exactly on the beat. When the next label is not the
+   * expected one (a relabelled stretch, a missing beat) or the annotation has a gap longer than
+   * `maxGap` seconds, the dancers move on to the pose of the next label right away, quickly (in
+   * `FAST_SECONDS` at most, half the interval at most), and wait there, so nothing jumps on the beat.
    * Before the first beat the dancers wait in the pose that leads into it (the end of the previous
    * count) and swing into the first step during the beat before it, like every other step.
    */
+  const FAST_SECONDS = 0.35;
+
   function frame(beats, t, maxGap = 1.5) {
     const times = beats.map((b) => b[0]);
     const k = beatAt(times, t);
@@ -79,17 +85,20 @@
       return { k, count: null, phase, ...still,
                leader: pose("leader", from, to, phase), follower: pose("follower", from, to, phase) };
     }
-    if (k === beats.length - 1 || times[k + 1] - times[k] > maxGap) {
+    if (k === beats.length - 1) {
       const count = beats[k][1];
       return { k, count, phase: 0, ...still,
                leader: pose("leader", count, count, 0), follower: pose("follower", count, count, 0) };
     }
-    const phase = (t - times[k]) / (times[k + 1] - times[k]);
     const from = beats[k][1], to = beats[k + 1][1];
+    const interval = times[k + 1] - times[k];
+    const expected = to === (from % 8) + 1;
+    const duration = expected && interval <= maxGap ? interval : Math.min(FAST_SECONDS, 0.5 * interval);
+    const phase = Math.min((t - times[k]) / duration, 1);
     return {
       k, count: from, phase,
       landing: { leader: LANDS.leader[from] || null, follower: LANDS.follower[from] || null },
-      glow: Math.max(0, 1 - phase * 1.6),
+      glow: Math.max(0, 1 - ((t - times[k]) / interval) * 1.6),
       leader: pose("leader", from, to, phase),
       follower: pose("follower", from, to, phase),
     };

@@ -14,14 +14,14 @@ assert.equal(beatAt(beats.map((b) => b[0]), 1.74), 1);
 const near = (a, b) => assert.ok(Math.abs(a - b) < 1e-9, `${a} != ${b}`);
 
 // leader, count by count
-near(at(0).leader.L.y, -0.2);                       // 1: left foot a bit to the back
+near(at(0).leader.L.y, -0.3);                       // 1: left foot a bit to the back
 near(at(1).leader.R.y, -1.25);                       // 2: right foot to the very back
 near(at(2).leader.L.y, at(0).leader.L.y);           // 3: left foot on the same spot as on 1
-near(at(4).leader.R.y, 0.2);                        // 5: right foot a bit in front of the center
+near(at(4).leader.R.y, 0.3);                        // 5: right foot a bit in front of the center
 near(at(5).leader.L.y, 1.25);                        // 6: left foot steps forward
 near(at(6).leader.R.y, at(4).leader.R.y);           // 7: right foot on the same spot as on 5
 // follower: mirrored (right foot forward on 1)
-near(at(0).follower.R.y, 0.2);
+near(at(0).follower.R.y, 0.3);
 near(at(1).follower.L.y, 1.25);
 near(at(5).follower.R.y, -1.25);
 
@@ -56,16 +56,31 @@ assert.deepEqual(Object.keys(LANDS.leader), Object.keys(LANDS.follower));
 
 // before the first beat: waiting in the pose that leads into count 1 (left foot forward, right foot a bit
 // in front of the center), then swinging into the first step during the beat before it
-const idle = frame(beats, 0.2);
+const idle = frame(beats, 0.3);
 assert.equal(idle.count, null);
 near(idle.leader.L.y, 1.25);
-near(idle.leader.R.y, 0.2);
+near(idle.leader.R.y, 0.3);
 assert.equal(idle.leader.L.lift, 0);
 const lead = frame(beats, 0.75);
 assert.ok(lead.leader.L.lift > 0.9);
-near(frame(beats, 1.0).leader.L.y, -0.2);
+near(frame(beats, 1.0).leader.L.y, -0.3);
 
+
+// an unexpected next label (here 2 -> 6): the dancers are at the pose of 6 well before its beat,
+// instead of sliding there across the whole beat; nothing jumps on the beat itself
+const jumpy = [[1, 1], [1.5, 2], [2, 6], [2.5, 7], [3, 8]];
+const early = frame(jumpy, 1.5 + 0.26);                  // half the 0.5 s interval is the longest it may take
+near(early.leader.L.y, 1.25);
+near(frame(jumpy, 1.999999).leader.L.y, frame(jumpy, 2).leader.L.y);
+assert.ok(frame(jumpy, 1.55).leader.L.lift > 0);        // it is on its way right after the beat
+// an expected pair still takes the whole interval (1 -> 2 from t = 1)
+assert.ok(frame(jumpy, 1.2).leader.L.y > -0.3 - 1e-9 && frame(jumpy, 1.2).phase < 1);
+near(frame(jumpy, 1.5).leader.R.y, -1.25);
+
+// a long gap in the annotation: quick move to the next label's pose, then wait (no jump on the beat)
 const gap = frame([[1, 1], [10, 2]], 5);
-assert.equal(gap.leader.L.lift, 0);
+near(gap.leader.R.y, -1.25);
+assert.ok(gap.leader.R.lift < 1e-9);
+near(frame([[1, 1], [10, 2]], 9.9999).leader.R.y, frame([[1, 1], [10, 2]], 10).leader.R.y);
 
 console.log("dance.js: all checks passed");
