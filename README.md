@@ -1,7 +1,7 @@
 # Salsa On2 Feet
 
 A static page: an embedded YouTube player for *Tu Con Él* (Frankie Ruiz) and, below it, two pairs of shoes
-(leader in sneakers, follower in heels) dancing the salsa on2 basic step on hand-annotated beats.
+(leader in black patent dance shoes, follower in heels) dancing the salsa on2 basic step on hand-annotated beats.
 
 ## Run it
 
@@ -36,7 +36,7 @@ python -m http.server 8000     # then open http://localhost:8000
 
 ## The step
 
-Leader (sneakers): 1 left foot a bit to the back · 2 right foot to the very back · 3 left foot back on its spot from 1 ·
+Leader: 1 left foot a bit to the back · 2 right foot to the very back · 3 left foot back on its spot from 1 ·
 5 right foot a bit in front of the center · 6 left foot steps forward · 7 right foot back on its spot from 5.
 Counts 4 and 8 are not stepped on (the free foot is already travelling to where it lands next).
 The follower mirrors the leader: what the leader's left foot does, the follower's right foot does the other way round
@@ -51,6 +51,15 @@ When the next label is not the expected one (1→2, …, 8→1) or the annotatio
 dancers go back to both feet centered right away (one foot after the other), wait there, and move into the next label's position during the
 beat before it.
 
+## Updating the beats
+
+After editing the annotation in the beat annotator, copy its csv over `data/tu-con-el.csv` and regenerate `beats.js`:
+
+```
+copy "..\salsa-beat-trackers\annotations\Tu Con El - Frankie Ruiz.csv" data\tu-con-el.csv
+python tools/make_beats.py
+```
+
 ## Files
 
 | file | |
@@ -58,7 +67,7 @@ beat before it.
 | `index.html` | page and styles |
 | `app.js` | video clock, click track, drawing, controls |
 | `dance.js` | the step as foot positions per count, and the interpolation between beats |
-| `beats.js` | `[time, count]` for every beat (generated from `data/tu-con-el.csv`) |
+| `beats.js` | `[time, count]` for every beat (generated from `data/tu-con-el.csv` by `tools/make_beats.py`) |
 | `data/tu-con-el.csv` | the annotation: `time,position` with position = count 1-8, 1 = downbeat |
 | `test/dance.test.js` | `node test/dance.test.js` |
 

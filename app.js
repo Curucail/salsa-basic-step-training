@@ -123,7 +123,7 @@
 
   // The dancer nearest to the viewer faces up the screen (dir +1), the other faces down (dir -1).
   // "View as follower" swaps the two places, so the follower's steps are seen from behind.
-  const KINDS = { leader: { kind: "sneaker", label: "Leader" }, follower: { kind: "heel", label: "Follower" } };
+  const KINDS = { leader: { kind: "shoe", label: "Leader" }, follower: { kind: "heel", label: "Follower" } };
   const SPOTS = {
     near: { cx: W / 2, base: 395, dir: 1, labelY: H - 16 },
     far: { cx: W / 2, base: 165, dir: -1, labelY: 28 },
@@ -146,27 +146,36 @@
     g.setLineDash([]);
   }
 
-  function sneakerPath() {
+  // men's black patent leather dance shoe (oxford), shining
+  function shoePath() {
     g.beginPath();
-    g.moveTo(0, -34);
-    g.bezierCurveTo(15, -34, 16, -14, 14.5, 0);
-    g.bezierCurveTo(13, 16, 12, 30, 0, 34);
-    g.bezierCurveTo(-12, 30, -13, 16, -14.5, 0);
-    g.bezierCurveTo(-16, -14, -15, -34, 0, -34);
+    g.moveTo(0, -35);
+    g.bezierCurveTo(11, -35, 14, -24, 13.5, -10);
+    g.bezierCurveTo(13, 6, 12.5, 24, 0, 33);
+    g.bezierCurveTo(-12.5, 24, -13, 6, -13.5, -10);
+    g.bezierCurveTo(-14, -24, -11, -35, 0, -35);
     g.closePath();
   }
 
-  function drawSneaker() {
-    g.save(); g.scale(1.1, 1.04); sneakerPath(); g.fillStyle = "#cfc8bb"; g.fill(); g.restore();   // sole
-    sneakerPath(); g.fillStyle = "#fbfaf7"; g.fill(); g.strokeStyle = "#a79f92"; g.lineWidth = 1.2; g.stroke();
-    g.beginPath(); g.ellipse(0, -23, 11.5, 9.5, 0, 0, Math.PI * 2); g.fillStyle = "#e7e2d8"; g.fill();   // toe cap
-    g.strokeStyle = "#3b6fd8"; g.lineWidth = 2.4; g.lineCap = "round";                                  // side stripes
-    g.beginPath(); g.moveTo(-13.5, -2); g.quadraticCurveTo(-8, 10, -4, 20); g.stroke();
-    g.beginPath(); g.moveTo(13.5, -2); g.quadraticCurveTo(8, 10, 4, 20); g.stroke();
-    g.strokeStyle = "#8f887b"; g.lineWidth = 1.6;                                                       // laces
-    for (let i = 0; i < 4; i++) { const y = -10 + i * 6.5; g.beginPath(); g.moveTo(-5.5, y); g.lineTo(5.5, y); g.stroke(); }
-    g.beginPath(); g.ellipse(0, 24, 7.5, 8.5, 0, 0, Math.PI * 2); g.fillStyle = "#34312d"; g.fill();     // ankle opening
-    g.strokeStyle = "#d8d2c6"; g.lineWidth = 1.4; g.stroke();
+  function drawDanceShoe() {
+    g.save(); g.scale(1.09, 1.035); shoePath(); g.fillStyle = "#4a4743"; g.fill(); g.restore();          // sole edge
+    const gloss = g.createLinearGradient(-14, 0, 14, 0);                                                  // lacquered upper
+    gloss.addColorStop(0, "#050506"); gloss.addColorStop(0.3, "#2b2c31");
+    gloss.addColorStop(0.5, "#0c0c0e"); gloss.addColorStop(1, "#050506");
+    shoePath(); g.fillStyle = gloss; g.fill();
+    g.strokeStyle = "#000"; g.lineWidth = 1.2; g.stroke();
+    g.strokeStyle = "rgba(255,255,255,0.13)"; g.lineWidth = 1; g.lineCap = "round";                      // toe cap seam
+    g.beginPath(); g.moveTo(-12.5, -17); g.quadraticCurveTo(0, -10.5, 12.5, -17); g.stroke();
+    g.strokeStyle = "rgba(255,255,255,0.22)"; g.lineWidth = 1;                                            // laces
+    for (let i = 0; i < 4; i++) { const y = -7 + i * 4.4; g.beginPath(); g.moveTo(-6, y); g.lineTo(6, y); g.stroke(); }
+    g.beginPath(); g.ellipse(0, 22, 7, 8, 0, 0, Math.PI * 2); g.fillStyle = "#020203"; g.fill();           // ankle opening
+    g.strokeStyle = "rgba(255,255,255,0.18)"; g.lineWidth = 1; g.stroke();
+    g.strokeStyle = "rgba(255,255,255,0.75)"; g.lineWidth = 2.4;                                          // shine on the toe
+    g.beginPath(); g.moveTo(-7.5, -28); g.quadraticCurveTo(-5, -33.5, 2.5, -33.8); g.stroke();
+    g.strokeStyle = "rgba(255,255,255,0.28)"; g.lineWidth = 3.2;                                          // long reflection
+    g.beginPath(); g.moveTo(-8.2, -12); g.quadraticCurveTo(-9.6, 2, -7.2, 14); g.stroke();
+    g.strokeStyle = "rgba(255,255,255,0.14)"; g.lineWidth = 1.6;
+    g.beginPath(); g.moveTo(9.6, -14); g.quadraticCurveTo(10.8, 0, 8.6, 12); g.stroke();
   }
 
   function heelPath() {
@@ -193,7 +202,7 @@
   function drawFoot(dancer, role, foot, state, glowAmount) {
     const [sx, sy] = [dancer.cx + dancer.dir * state.x * S, dancer.base - dancer.dir * state.y * S];
     const angle = (dancer.dir === 1 ? 0 : Math.PI) + (foot === "R" ? 0.08 : -0.08);
-    const shape = dancer.kind === "sneaker" ? sneakerPath : heelPath;
+    const shape = dancer.kind === "shoe" ? shoePath : heelPath;
     const lift = state.lift;
 
     g.save();                                           // shadow
@@ -206,7 +215,7 @@
     g.translate(sx, sy); g.rotate(angle);
     const scale = SHOE * (1 + 0.14 * lift);
     g.scale(scale, scale);
-    if (dancer.kind === "sneaker") drawSneaker(); else drawHeel();
+    if (dancer.kind === "shoe") drawDanceShoe(); else drawHeel();
     g.restore();
 
     if (glowAmount > 0) {                               // ring on the foot that takes the weight
