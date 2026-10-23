@@ -140,6 +140,9 @@
     for (let x = 40; x < W; x += 80) { g.beginPath(); g.moveTo(x, 0); g.lineTo(x, H); g.stroke(); }
     g.setLineDash([6, 8]); g.strokeStyle = "rgba(255,255,255,0.12)";
     g.beginPath(); g.moveTo(W / 2, 0); g.lineTo(W / 2, H); g.stroke();
+    for (const y of [SPOTS.near.base, SPOTS.far.base]) {      // each dancer's central position
+      g.beginPath(); g.moveTo(0, y); g.lineTo(W, y); g.stroke();
+    }
     g.setLineDash([]);
   }
 
