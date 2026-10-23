@@ -47,9 +47,9 @@ dancers stand with both feet centered; the foot that steps on count 1 moves into
 the other one stays centered until its own step (only one foot moves at a time). The positions are two small
 arrays at the top of `dance.js`; change them to try other patterns.
 
-When the next label is not the expected one (1→2, …, 8→1) or the annotation has a gap of more than 1.5 s, the
-dancers go back to both feet centered right away (one foot after the other), wait there, and move into the next label's position during the
-beat before it.
+When the next label is not the expected one (1→2, …, 8→1) the dancers just go on to the next step: only the foot
+that steps on that label moves, straight to its position, and the other foot stays where it is. After a gap of more
+than 1.5 s in the annotation that foot moves in the last 0.35 s before its beat.
 
 ## Updating the beats
 

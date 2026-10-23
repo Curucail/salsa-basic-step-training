@@ -76,32 +76,32 @@ near(frame(beats, 1.0).follower.R.y, 0.3);
 near(frame(beats, 1.0).follower.L.y, 0);
 assert.equal(frame(beats, 0.75).follower.L.lift, 0);
 
-// an unexpected next label (here 2 -> 6): back to both feet centered, then into the position of 6 on its beat
+// an unexpected next label (here 2 -> 6): no recentering; only the foot that steps on 6 (the leader's
+// left foot) moves, straight to its position; the right foot stays exactly where it was
 const jumpy = [[1, 1], [1.5, 2], [2, 6], [2.5, 7], [3, 8]];
-const centered = frame(jumpy, 1.7);                     // 0.2 s after the beat (40% of the 0.5 s interval)
-for (const role of ["leader", "follower"]) {
-  near(centered[role].L.y, 0); near(centered[role].R.y, 0);
-  near(centered[role].L.x, -0.5); near(centered[role].R.x, 0.5);
-}
-assert.ok(frame(jumpy, 1.55).leader.R.lift > 0);        // the right foot (farther away) goes first ...
-assert.equal(frame(jumpy, 1.55).leader.L.lift, 0);
-assert.ok(frame(jumpy, 1.65).leader.L.lift > 0);        // ... then the left one
-assert.ok(frame(jumpy, 1.85).leader.L.lift > 0);        // and the left foot steps into the new position
-assert.equal(frame(jumpy, 1.85).leader.R.lift, 0);      // while the right foot stays centered
-near(frame(jumpy, 2).leader.R.y, 0);
+const mid = frame(jumpy, 1.75);
+near(mid.leader.R.y, -1.25);                            // right foot stays at the very back
+assert.equal(mid.leader.R.lift, 0);
+assert.ok(mid.leader.L.lift > 0.9);                     // left foot on its way ...
+assert.ok(mid.leader.L.y > -0.3 && mid.leader.L.y < 1.25);
 near(frame(jumpy, 1.999999).leader.L.y, frame(jumpy, 2).leader.L.y);
-near(frame(jumpy, 2).leader.L.y, 1.25);                 // pose of 6
+near(frame(jumpy, 2).leader.L.y, 1.25);                 // ... and on the pose of 6 at its beat
+near(frame(jumpy, 2).leader.R.y, -1.25);                // the right foot has not been touched
+// the next step (6 -> 7) then moves the right foot from where it really is
+assert.ok(frame(jumpy, 2.25).leader.R.lift > 0.9);
+near(frame(jumpy, 2.5).leader.R.y, 0.3);
 // an expected pair still takes the whole interval (1 -> 2 from t = 1)
 assert.ok(frame(jumpy, 1.2).phase < 1);
 near(frame(jumpy, 1.5).leader.R.y, -1.25);
 
-// a long gap in the annotation: centered while it lasts, no jump on the next beat
+// a long gap in the annotation: nothing moves during it, the stepping foot only moves right before its beat
 const gapBeats = [[1, 1], [10, 2]];
-for (const role of ["leader", "follower"]) {
-  near(frame(gapBeats, 5)[role].L.y, 0); near(frame(gapBeats, 5)[role].R.y, 0);
-}
-assert.ok(frame(gapBeats, 5).leader.R.lift < 1e-9);
+near(frame(gapBeats, 5).leader.L.y, -0.3);              // left foot where it stepped on 1
+near(frame(gapBeats, 5).leader.R.y, 0);                 // right foot still centered
+assert.equal(frame(gapBeats, 5).leader.R.lift, 0);
+assert.ok(frame(gapBeats, 9.85).leader.R.lift > 0.9);   // right foot steps in the last 0.35 s
 near(frame(gapBeats, 9.999999999).leader.R.y, frame(gapBeats, 10).leader.R.y);
+near(frame(gapBeats, 10).leader.R.y, -1.25);
 
 // never two feet moving at once, for either dancer: steady dancing, a jump in the labels, a long gap
 for (const seq of [beats, jumpy, gapBeats]) {

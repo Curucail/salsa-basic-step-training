@@ -68,9 +68,9 @@
   }
 
   /**
-   * Which feet have stepped since the dancers last stood centered (at the start, or after an
-   * unexpected label). A foot that has not stepped yet stays centered until its own step: only one
-   * foot moves at a time.
+   * Where each foot is at every beat, and whether it has stepped since the dancers last started over
+   * (at the start of the song, or after an unexpected label). A foot that has not stepped yet stays
+   * where it is until its own step, so only one foot moves at a time and nothing jumps.
    */
   const analyses = new WeakMap();
   function analyze(beats, maxGap) {
@@ -79,13 +79,17 @@
     const expected = beats.map((b, i) => i < beats.length - 1 && beats[i + 1][1] === (b[1] % 8) + 1
                                           && beats[i + 1][0] - b[0] <= maxGap);
     const landed = { leader: { L: [], R: [] }, follower: { L: [], R: [] } };
+    const pos = { leader: { L: [], R: [] }, follower: { L: [], R: [] } };
     beats.forEach((b, i) => {
-      const entry = i === 0 || !expected[i - 1];
+      const start = i === 0 || !expected[i - 1];
       for (const role of ["leader", "follower"]) for (const foot of FOOT) {
-        landed[role][foot][i] = (!entry && landed[role][foot][i - 1]) || LANDS[role][b[1]] === foot;
+        const lands = LANDS[role][b[1]] === foot;
+        landed[role][foot][i] = (!start && landed[role][foot][i - 1]) || lands;
+        pos[role][foot][i] = landed[role][foot][i] ? stateAt(role, b[1])[foot]
+                           : i === 0 ? CENTERED[foot] : pos[role][foot][i - 1];
       }
     });
-    an = { maxGap, expected, landed };
+    an = { maxGap, expected, landed, pos };
     analyses.set(beats, an);
     return an;
   }
@@ -94,10 +98,9 @@
    * What the dancers look like at time t. `beats` is [[time, count], ...] ascending.
    *
    * Expected counts (1->2, ..., 8->1) are timed exactly on the beat. When the next label is not the
-   * expected one (a relabelled stretch, a missing beat) or the annotation has a gap longer than
-   * `maxGap` seconds, the dancers go back to both feet centered right away (one foot after the other,
-   * in `FAST_SECONDS` at most), wait there, and move into the position of the next label during the
-   * beat before it, so nothing jumps on the beat.
+   * expected one (a relabelled stretch, a missing beat) the dancers just go on to the next step: only
+   * the foot that steps on that label moves, to its position, and the other foot stays where it is.
+   * After a long annotation gap (`maxGap` seconds) that foot moves in the last `FAST_SECONDS`.
    * Before the first beat the dancers stand with both feet centered and the foot that takes the
    * weight on the first count steps into place during the beat before it; the other foot stays
    * centered until its own step.
@@ -109,60 +112,52 @@
     const k = beatAt(times, t);
     const still = { landing: { leader: null, follower: null }, glow: 0 };
     const roles = ["leader", "follower"];
-    const enter = (role, to, phase) => {            // from centered into the position of count `to`
-      const out = {};
-      for (const foot of FOOT) {
-        const lands = LANDS[role][to] === foot;
-        out[foot] = footMove(CENTERED[foot], lands ? stateAt(role, to)[foot] : CENTERED[foot], phase, false);
-      }
-      return out;
-    };
     if (k < 0) {
       const to = beats[0][1];
       const period = beats.length > 1 ? beats[1][0] - beats[0][0] : 0.5;
       const phase = Math.min(Math.max((t - (beats[0][0] - period)) / period, 0), 1);
-      return { k, count: null, phase, ...still, leader: enter("leader", to, phase), follower: enter("follower", to, phase) };
-    }
-    const an = analyze(beats, maxGap);
-    const from = beats[k][1];
-    // where a foot is at beat k: its table position once it has stepped, centered before that
-    const at = (role, foot) => (an.landed[role][foot][k] ? stateAt(role, from)[foot] : CENTERED[foot]);
-    if (k === beats.length - 1) {
-      const rest = (role) => ({ L: footMove(at(role, "L"), at(role, "L"), 0, false),
-                                R: footMove(at(role, "R"), at(role, "R"), 0, false) });
-      return { k, count: from, phase: 0, ...still, leader: rest("leader"), follower: rest("follower") };
-    }
-    const to = beats[k + 1][1];
-    const interval = times[k + 1] - times[k], elapsed = t - times[k];
-    const landing = { leader: LANDS.leader[from] || null, follower: LANDS.follower[from] || null };
-    const glow = Math.max(0, 1 - (elapsed / interval) * 1.6);
-    const out = { k, count: from, phase: elapsed / interval, landing, glow };
-    if (an.expected[k]) {
+      const out = { k, count: null, phase, ...still };
       for (const role of roles) {
         out[role] = {};
         for (const foot of FOOT) {
           const lands = LANDS[role][to] === foot;
-          const target = an.landed[role][foot][k] || lands ? stateAt(role, to)[foot] : CENTERED[foot];
-          out[role][foot] = footMove(at(role, foot), target, elapsed / interval, lands);
+          out[role][foot] = footMove(CENTERED[foot], lands ? stateAt(role, to)[foot] : CENTERED[foot], phase, false);
         }
       }
       return out;
     }
-    // unexpected next label: to the centered stance (one foot after the other), wait, then step into place
-    const toCenter = Math.min(FAST_SECONDS, 0.4 * interval);
-    const fromCenter = Math.min(FAST_SECONDS, interval - toCenter);
-    for (const role of roles) {
-      if (elapsed >= interval - fromCenter) {
-        out[role] = enter(role, to, (elapsed - (interval - fromCenter)) / fromCenter);
-        continue;
+    const an = analyze(beats, maxGap);
+    const from = beats[k][1];
+    const out = { k, count: from, phase: 0, ...still };
+    if (k === beats.length - 1) {
+      for (const role of roles) {
+        out[role] = {};
+        for (const foot of FOOT) {
+          const at = an.pos[role][foot][k];
+          out[role][foot] = footMove(at, at, 0, false);
+        }
       }
-      const far = (foot) => Math.hypot(at(role, foot)[0] - CENTERED[foot][0], at(role, foot)[1] - CENTERED[foot][1]);
-      const order = far("L") >= far("R") ? ["L", "R"] : ["R", "L"];     // the farther foot goes first
+      return out;
+    }
+    const to = beats[k + 1][1];
+    const interval = times[k + 1] - times[k], elapsed = t - times[k];
+    out.landing = { leader: LANDS.leader[from] || null, follower: LANDS.follower[from] || null };
+    out.glow = Math.max(0, 1 - (elapsed / interval) * 1.6);
+    out.phase = elapsed / interval;
+    const expected = an.expected[k];
+    // after a long gap the step is only made in the last moments before its beat
+    const phase = !expected && interval > maxGap
+      ? Math.min(Math.max((elapsed - (interval - FAST_SECONDS)) / FAST_SECONDS, 0), 1)
+      : elapsed / interval;
+    for (const role of roles) {
       out[role] = {};
-      order.forEach((foot, i) => {
-        const phase = Math.min(Math.max((elapsed - (i * toCenter) / 2) / (toCenter / 2), 0), 1);
-        out[role][foot] = footMove(at(role, foot), CENTERED[foot], phase, false);
-      });
+      for (const foot of FOOT) {
+        const lands = LANDS[role][to] === foot;
+        const at = an.pos[role][foot][k];
+        // expected: every foot follows the step table; unexpected: only the stepping foot moves
+        const moves = expected ? an.landed[role][foot][k] || lands : lands;
+        out[role][foot] = footMove(at, moves ? stateAt(role, to)[foot] : at, phase, lands);
+      }
     }
     return out;
   }
