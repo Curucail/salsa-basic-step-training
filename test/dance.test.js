@@ -67,21 +67,27 @@ assert.ok(lead.leader.L.lift > 0.9);
 near(frame(beats, 1.0).leader.L.y, -0.3);
 
 
-// an unexpected next label (here 2 -> 6): the dancers are at the pose of 6 well before its beat,
-// instead of sliding there across the whole beat; nothing jumps on the beat itself
+// an unexpected next label (here 2 -> 6): back to both feet centered, then into the position of 6 on its beat
 const jumpy = [[1, 1], [1.5, 2], [2, 6], [2.5, 7], [3, 8]];
-const early = frame(jumpy, 1.5 + 0.26);                  // half the 0.5 s interval is the longest it may take
-near(early.leader.L.y, 1.25);
+const centered = frame(jumpy, 1.7);                     // 0.2 s after the beat (40% of the 0.5 s interval)
+for (const role of ["leader", "follower"]) {
+  near(centered[role].L.y, 0); near(centered[role].R.y, 0);
+  near(centered[role].L.x, -0.5); near(centered[role].R.x, 0.5);
+}
+assert.ok(frame(jumpy, 1.55).leader.L.lift > 0);        // on its way right after the beat
+assert.ok(frame(jumpy, 1.85).leader.L.lift > 0);        // and moving into the new position
 near(frame(jumpy, 1.999999).leader.L.y, frame(jumpy, 2).leader.L.y);
-assert.ok(frame(jumpy, 1.55).leader.L.lift > 0);        // it is on its way right after the beat
+near(frame(jumpy, 2).leader.L.y, 1.25);                 // pose of 6
 // an expected pair still takes the whole interval (1 -> 2 from t = 1)
-assert.ok(frame(jumpy, 1.2).leader.L.y > -0.3 - 1e-9 && frame(jumpy, 1.2).phase < 1);
+assert.ok(frame(jumpy, 1.2).phase < 1);
 near(frame(jumpy, 1.5).leader.R.y, -1.25);
 
-// a long gap in the annotation: quick move to the next label's pose, then wait (no jump on the beat)
-const gap = frame([[1, 1], [10, 2]], 5);
-near(gap.leader.R.y, -1.25);
-assert.ok(gap.leader.R.lift < 1e-9);
-near(frame([[1, 1], [10, 2]], 9.9999).leader.R.y, frame([[1, 1], [10, 2]], 10).leader.R.y);
+// a long gap in the annotation: centered while it lasts, no jump on the next beat
+const gapBeats = [[1, 1], [10, 2]];
+for (const role of ["leader", "follower"]) {
+  near(frame(gapBeats, 5)[role].L.y, 0); near(frame(gapBeats, 5)[role].R.y, 0);
+}
+assert.ok(frame(gapBeats, 5).leader.R.lift < 1e-9);
+near(frame(gapBeats, 9.999999999).leader.R.y, frame(gapBeats, 10).leader.R.y);
 
 console.log("dance.js: all checks passed");

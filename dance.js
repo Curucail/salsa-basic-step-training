@@ -74,8 +74,9 @@
    *
    * Expected counts (1->2, ..., 8->1) are timed exactly on the beat. When the next label is not the
    * expected one (a relabelled stretch, a missing beat) or the annotation has a gap longer than
-   * `maxGap` seconds, the dancers move on to the pose of the next label right away, quickly (in
-   * `FAST_SECONDS` at most, half the interval at most), and wait there, so nothing jumps on the beat.
+   * `maxGap` seconds, the dancers go back to both feet centered right away (in `FAST_SECONDS` at
+   * most), wait there, and move into the position of the next label during the beat before it, so
+   * nothing jumps on the beat.
    * Before the first beat the dancers stand with both feet centered and move into the position of
    * the first count during the beat before it, like every other step.
    */
@@ -98,17 +99,22 @@
                leader: pose("leader", count, count, 0), follower: pose("follower", count, count, 0) };
     }
     const from = beats[k][1], to = beats[k + 1][1];
-    const interval = times[k + 1] - times[k];
-    const expected = to === (from % 8) + 1;
-    const duration = expected && interval <= maxGap ? interval : Math.min(FAST_SECONDS, 0.5 * interval);
-    const phase = Math.min((t - times[k]) / duration, 1);
-    return {
-      k, count: from, phase,
-      landing: { leader: LANDS.leader[from] || null, follower: LANDS.follower[from] || null },
-      glow: Math.max(0, 1 - ((t - times[k]) / interval) * 1.6),
-      leader: pose("leader", from, to, phase),
-      follower: pose("follower", from, to, phase),
-    };
+    const interval = times[k + 1] - times[k], elapsed = t - times[k];
+    const expected = to === (from % 8) + 1 && interval <= maxGap;
+    const landing = { leader: LANDS.leader[from] || null, follower: LANDS.follower[from] || null };
+    const glow = Math.max(0, 1 - (elapsed / interval) * 1.6);
+    if (expected) {
+      const phase = elapsed / interval;
+      return { k, count: from, phase, landing, glow,
+               leader: pose("leader", from, to, phase), follower: pose("follower", from, to, phase) };
+    }
+    // unexpected next label: to the centered stance, wait, then into the next position
+    const toCenter = Math.min(FAST_SECONDS, 0.4 * interval);
+    const fromCenter = Math.min(FAST_SECONDS, interval - toCenter);
+    const go = (role) => (elapsed < interval - fromCenter
+      ? blend(role, stateAt(role, from), CENTERED, Math.min(elapsed / toCenter, 1), null)
+      : blend(role, CENTERED, stateAt(role, to), (elapsed - (interval - fromCenter)) / fromCenter, to));
+    return { k, count: from, phase: elapsed / interval, landing, glow, leader: go("leader"), follower: go("follower") };
   }
 
   const api = { FEET, LANDS, beatAt, pose, frame };

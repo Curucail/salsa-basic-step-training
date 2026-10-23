@@ -46,6 +46,10 @@ A foot lands exactly on its beat; it is already travelling during the beat befor
 dancers stand with both feet centered and move into the count-1 position during the beat before it. The positions are two small
 arrays at the top of `dance.js`; change them to try other patterns.
 
+When the next label is not the expected one (1→2, …, 8→1) or the annotation has a gap of more than 1.5 s, the
+dancers go back to both feet centered right away, wait there, and move into the next label's position during the
+beat before it.
+
 ## Files
 
 | file | |
