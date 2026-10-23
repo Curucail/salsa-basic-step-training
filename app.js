@@ -238,7 +238,9 @@
   // count ribbon
   const ribbon = $("counts");
   const cells = [];
-  const SHOWN = [1, 2, 3, 5, 6, 7];          // 4 and 8 are not stepped on
+  const SHOWN = [1, 2, 3, 5, 6, 7];          // 4 and 8 are not stepped on ...
+  const LONG = { 3: 4, 7: 8 };               // ... they belong to 3 and 7, which last two beats
+  ribbon.style.gridTemplateColumns = SHOWN.map((c) => (LONG[c] ? "2fr" : "1fr")).join(" ");
   for (const c of SHOWN) {
     const el = document.createElement("span");
     el.textContent = String(c);
@@ -255,7 +257,7 @@
     drawDancer("leader", f);
     const count = f.count !== null && f.k < BEATS.length - 1 && (STILL || ready) ? f.count : null;
     if (count !== shownCount) {
-      cells.forEach((el, i) => el.classList.toggle("now", count === SHOWN[i]));
+      cells.forEach((el, i) => el.classList.toggle("now", count === SHOWN[i] || count === LONG[SHOWN[i]]));
       shownCount = count;
     }
   }

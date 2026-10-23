@@ -1,3 +1,3 @@
-# Salsa On2 Feet
+# Salsa en Línea on2 - Basic Step Practice
 
-Tu Con Él · Frankie Ruiz — the feet follow hand-annotated beats.
+Play the video and step with the beat to practice your on2 basic step!
