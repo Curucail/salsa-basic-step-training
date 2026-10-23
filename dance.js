@@ -5,19 +5,20 @@
  * about a step. Each table lists where a foot is at the moment count 1..8 sounds; between two beats a
  * foot glides from its position at one count to its position at the next, so a foot that steps on
  * count n is already on its way during the beat before it and lands exactly on the beat.
+ * On 4 and 8 nothing moves: those are holds, and the free foot only starts travelling after them.
  *
  * Leader:
  *   1  left foot a bit to the back          5  right foot a bit in front of the center
  *   2  right foot to the very back          6  left foot steps forward
  *   3  left foot back on its spot from 1    7  right foot back on its spot from 5
- *   (4 and 8: no step; the free foot is already travelling to where it lands next)
+ *   (4 and 8: holds)
  * The follower mirrors the leader: what the leader's left foot does, the follower's right foot does
  * the other way round (back becomes forward), and the other way round.
  */
 (function (root) {
   const LEFT = -0.5, RIGHT = 0.5;
   // y of each foot at counts 1..8 (x is fixed per foot)
-  const LEADER_L = [-0.4, -0.4, -0.4, -0.4, -0.4, 1.0, 1.0, 0.3];
+  const LEADER_L = [-0.4, -0.4, -0.4, -0.4, -0.4, 1.0, 1.0, 1.0];
   const LEADER_R = [0.4, -1.0, -1.0, -1.0, 0.4, 0.4, 0.4, 0.4];
   const column = (x, ys) => ys.map((y) => [x, y]);
 
@@ -68,7 +69,7 @@
   function frame(beats, t, maxGap = 1.5) {
     const times = beats.map((b) => b[0]);
     const k = beatAt(times, t);
-    const home = (role) => pose(role, 8, 8, 0);
+    const home = () => ({ L: { x: -0.5, y: 0, lift: 0 }, R: { x: 0.5, y: 0, lift: 0 } });   // before the first beat
     if (k < 0 || k === beats.length - 1 || times[k + 1] - times[k] > maxGap) {
       const count = k < 0 ? null : beats[k][1];
       const hold = (role) => (count ? pose(role, count, count, 0) : home(role));

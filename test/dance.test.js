@@ -25,9 +25,9 @@ near(at(0).follower.R.y, 0.4);
 near(at(1).follower.L.y, 1.0);
 near(at(5).follower.R.y, -1.0);
 
-// feet hold still between counts 3 and 4 (the pause) ...
-{
-  const a = at(2, 0), b = at(2, 0.9);
+// feet hold still on 4 and 8 (between counts 3-4 and 7-8) ...
+for (const n of [2, 6]) {
+  const a = at(n, 0), b = at(n, 0.95);
   for (const role of ["leader", "follower"]) for (const foot of ["L", "R"]) {
     near(a[role][foot].y, b[role][foot].y);
     assert.equal(b[role][foot].lift, 0);
