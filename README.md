@@ -25,20 +25,23 @@ python -m http.server 8000     # then open http://localhost:8000
 
 ## Controls
 
-- **Music / Beat clicks**: a click on every beat is played over the video (count 1 has a higher pitch). The two
-  sliders are the mix between the music and the clicks. *Clicks on* limits them to the steps (not 4 and 8) or to 1 and 5.
-- **Sync**: the beats were annotated on an audio file, so the video may be a few milliseconds off (or have a different
-  intro). If the clicks come too late, drag Sync to the left; if too early, to the right. It is remembered.
+- **Music / Beat clicks**: a click on every step is played over the video (count 1 has a higher pitch). The two
+  sliders are the mix between the music and the clicks. *Clicks on* limits them to 1 and 5.
+- The beats were annotated on an audio file, so they are shifted by a fixed -95 ms against the video
+  (`SYNC_MS` at the top of `app.js`; a different upload may need another value).
 - The browser blocks sound until you click on the page once; a click inside the video counts.
 - Clicks are scheduled by a timer, so keep the tab in the foreground (browsers throttle background tabs).
 
 ## The step
 
-Leader (sneakers): 1 L back · 2 R replace · 3 L together · 4 pause · 5 R forward · 6 L replace · 7 R together · 8 pause.
-Follower (heels): 1 R forward · 2 L replace · 3 R together · 4 pause · 5 L back · 6 R replace · 7 L together · 8 pause.
+Leader (sneakers): 1 left foot a bit to the back · 2 right foot to the very back · 3 left foot back on its spot from 1 ·
+5 right foot a bit in front of the center · 6 left foot steps forward · 7 right foot back on its spot from 5.
+Counts 4 and 8 are not stepped on (the free foot is already travelling to where it lands next).
+The follower mirrors the leader: what the leader's left foot does, the follower's right foot does the other way round
+(back becomes forward), and vice versa.
 
-A foot lands exactly on its beat; it is already travelling during the beat before. The break steps (direction
-changes) are on 2 and 6. The tables are in `dance.js` (`FEET`, `LANDS`); change them to try other patterns.
+A foot lands exactly on its beat; it is already travelling during the beat before. The positions are two small
+arrays at the top of `dance.js`; change them to try other patterns.
 
 ## Files
 

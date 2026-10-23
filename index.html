@@ -37,20 +37,16 @@
   select, button { font: inherit; padding: 5px 9px; border-radius: 7px; border: 1px solid var(--line);
                    background: var(--bg); color: var(--fg); cursor: pointer; }
   button.on { background: var(--accent); border-color: var(--accent); color: var(--accent-fg); }
-  .hint { color: var(--muted); font-size: .85rem; margin: 8px 0 0; }
 
   .stage { margin-top: 14px; background: #2a1d14; border-radius: 10px; overflow: hidden; }
   canvas { display: block; width: 100%; height: auto; }
-  .counts { display: grid; grid-template-columns: repeat(8, 1fr); gap: 6px; margin-top: 10px; }
+  .counts { display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; margin-top: 10px; }
   .counts span { text-align: center; padding: 6px 0; border-radius: 7px; border: 1px solid var(--line);
                  background: var(--panel); font-weight: 600; font-variant-numeric: tabular-nums;
                  transition: background .08s, color .08s; }
-  .counts span.pause { color: var(--muted); font-weight: 400; }
   .counts span.now { background: var(--accent); border-color: var(--accent); color: var(--accent-fg); }
-  .legend { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 8px 18px;
-            font-size: .9rem; }
-  .legend b { white-space: nowrap; }
-  .status { color: var(--muted); font-size: .85rem; margin-top: 8px; min-height: 1.3em; }
+  .status { color: var(--muted); font-size: .85rem; margin: 8px 0 0; }
+  .status:empty { display: none; }
 </style>
 </head>
 <body>
@@ -74,34 +70,16 @@
       <label>
         <span class="row"><span>Clicks on</span></span>
         <select id="mode">
-          <option value="all">every beat (1 accented)</option>
-          <option value="steps">steps only (not 4 and 8)</option>
+          <option value="steps">every step (1 accented)</option>
           <option value="ones">1 and 5 only</option>
         </select>
       </label>
-      <label>
-        <span class="row"><span>Sync</span><span class="val" id="syncVal">0 ms</span></span>
-        <input id="sync" type="range" min="-1500" max="1500" step="5" value="0">
-      </label>
     </div>
-    <p class="hint">
-      Sync moves the beats against the video: if the clicks come too late, drag it to the left; if too early, to the right.
-      <button id="syncReset" type="button">Reset sync</button>
-    </p>
     <p class="status" id="audioStatus" role="status"></p>
   </section>
 
   <div class="stage"><canvas id="stage" width="640" height="560" aria-label="Animation of the salsa on2 basic step"></canvas></div>
   <div class="counts" id="counts" aria-hidden="true"></div>
-
-  <section class="panel" aria-label="The steps">
-    <h2>The basic step</h2>
-    <div class="legend">
-      <div><b>Leader &middot; sneakers</b><br>1 L back · 2 R replace · 3 L together · 4 pause · 5 R forward · 6 L replace · 7 R together · 8 pause</div>
-      <div><b>Follower &middot; heels</b><br>1 R forward · 2 L replace · 3 R together · 4 pause · 5 L back · 6 R replace · 7 L together · 8 pause</div>
-    </div>
-    <p class="hint">Top view; the leader is at the bottom, the follower at the top, facing each other. The ring marks the foot that takes the weight on each count.</p>
-  </section>
 </main>
 
 <script src="beats.js"></script>

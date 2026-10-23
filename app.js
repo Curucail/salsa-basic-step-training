@@ -14,11 +14,11 @@
   };
 
   // ───────────────────────── settings ─────────────────────────
+  const SYNC_MS = -95;                   // ms the video runs behind the annotated beats
   const settings = {
     music: Number(store.get("music", 100)),
     click: Number(store.get("click", 70)),
-    mode: store.get("mode", "all"),
-    sync: Number(store.get("sync", 0)),   // ms the video runs behind the annotated beats
+    mode: store.get("mode", "steps") === "ones" ? "ones" : "steps",
   };
 
   // ───────────────────────── video clock ─────────────────────────
@@ -50,7 +50,7 @@
     }
     return clock.anchorT + ((now - clock.anchorPerf) / 1000) * clock.rate;
   }
-  const songTime = () => videoTime() - settings.sync / 1000;
+  const songTime = () => videoTime() - SYNC_MS / 1000;
 
   // ───────────────────────── click track ─────────────────────────
   let ctx = null, master = null, horizon = null;
@@ -69,9 +69,8 @@
   }
 
   function wanted(count) {
-    if (settings.mode === "steps") return count !== 4 && count !== 8;
     if (settings.mode === "ones") return count === 1 || count === 5;
-    return true;
+    return count !== 4 && count !== 8;
   }
 
   function click(when, count) {
@@ -124,8 +123,8 @@
 
   // dir +1: faces up the screen (leader), -1: faces down (follower)
   const DANCERS = {
-    leader: { cx: W / 2, base: 430, dir: 1, kind: "sneaker", label: "Leader", labelY: H - 16 },
-    follower: { cx: W / 2, base: 130, dir: -1, kind: "heel", label: "Follower", labelY: 28 },
+    leader: { cx: W / 2, base: 410, dir: 1, kind: "sneaker", label: "Leader", labelY: H - 16 },
+    follower: { cx: W / 2, base: 150, dir: -1, kind: "heel", label: "Follower", labelY: 28 },
   };
 
   function drawFloor() {
@@ -222,10 +221,10 @@
   // count ribbon
   const ribbon = $("counts");
   const cells = [];
-  for (let c = 1; c <= 8; c++) {
+  const SHOWN = [1, 2, 3, 5, 6, 7];          // 4 and 8 are not stepped on
+  for (const c of SHOWN) {
     const el = document.createElement("span");
-    el.textContent = c === 4 || c === 8 ? c + " ·" : String(c);
-    if (c === 4 || c === 8) el.className = "pause";
+    el.textContent = String(c);
     ribbon.appendChild(el); cells.push(el);
   }
   let shownCount = null;
@@ -239,7 +238,7 @@
     drawDancer("leader", f);
     const count = f.count !== null && f.k < BEATS.length - 1 && (STILL || ready) ? f.count : null;
     if (count !== shownCount) {
-      cells.forEach((el, i) => el.classList.toggle("now", count === i + 1));
+      cells.forEach((el, i) => el.classList.toggle("now", count === SHOWN[i]));
       shownCount = count;
     }
   }
@@ -262,12 +261,8 @@
   }
   bind("music", "musicVal", "music", (v) => v + "%", () => { if (ready) player.setVolume(settings.music); });
   bind("click", "clickVal", "click", (v) => v + "%", () => { ensureAudio(); if (master) master.gain.value = settings.click / 100; });
-  bind("sync", "syncVal", "sync", (v) => (v > 0 ? "+" : "") + v + " ms");
   $("mode").value = settings.mode;
   $("mode").addEventListener("change", () => { settings.mode = $("mode").value; store.set("mode", settings.mode); });
-  $("syncReset").addEventListener("click", () => {
-    $("sync").value = 0; $("sync").dispatchEvent(new Event("input"));
-  });
 
   // ───────────────────────── YouTube ─────────────────────────
   if (STILL) {

@@ -6,21 +6,24 @@
  * foot glides from its position at one count to its position at the next, so a foot that steps on
  * count n is already on its way during the beat before it and lands exactly on the beat.
  *
- *   Leader   1 L back   2 R replace   3 L together   4 pause   5 R forward   6 L replace   7 R together   8 pause
- *   Follower 1 R fwd    2 L replace   3 R together   4 pause   5 L back      6 R replace   7 L together   8 pause
- *
- * The break steps (where the direction changes) are on 2 and 6, as in on2.
+ * Leader:
+ *   1  left foot a bit to the back          5  right foot a bit in front of the center
+ *   2  right foot to the very back          6  left foot steps forward
+ *   3  left foot back on its spot from 1    7  right foot back on its spot from 5
+ *   (4 and 8: no step; the free foot is already travelling to where it lands next)
+ * The follower mirrors the leader: what the leader's left foot does, the follower's right foot does
+ * the other way round (back becomes forward), and the other way round.
  */
 (function (root) {
+  const LEFT = -0.5, RIGHT = 0.5;
+  // y of each foot at counts 1..8 (x is fixed per foot)
+  const LEADER_L = [-0.4, -0.4, -0.4, -0.4, -0.4, 1.0, 1.0, 0.3];
+  const LEADER_R = [0.4, -1.0, -1.0, -1.0, 0.4, 0.4, 0.4, 0.4];
+  const column = (x, ys) => ys.map((y) => [x, y]);
+
   const FEET = {
-    leader: {
-      L: [[-0.5, -1], [-0.5, -0.5], [-0.5, 0], [-0.5, 0], [-0.5, 0], [-0.5, 0], [-0.5, 0], [-0.5, 0]],
-      R: [[0.5, 0], [0.5, 0], [0.5, 0], [0.5, 0], [0.5, 1], [0.5, 0.5], [0.5, 0], [0.5, 0]],
-    },
-    follower: {
-      R: [[0.5, 1], [0.5, 0.5], [0.5, 0], [0.5, 0], [0.5, 0], [0.5, 0], [0.5, 0], [0.5, 0]],
-      L: [[-0.5, 0], [-0.5, 0], [-0.5, 0], [-0.5, 0], [-0.5, -1], [-0.5, -0.5], [-0.5, 0], [-0.5, 0]],
-    },
+    leader: { L: column(LEFT, LEADER_L), R: column(RIGHT, LEADER_R) },
+    follower: { R: column(RIGHT, LEADER_L.map((y) => -y)), L: column(LEFT, LEADER_R.map((y) => -y)) },
   };
 
   // Which foot takes the weight on which count.
@@ -48,10 +51,11 @@
       const a = FEET[role][foot][from - 1], b = FEET[role][foot][to - 1];
       const e = smooth(phase);
       const moving = a[0] !== b[0] || a[1] !== b[1];
+      const retakes = !moving && LANDS[role][to] === foot;   // steps back onto the same spot
       out[foot] = {
         x: a[0] + (b[0] - a[0]) * e,
         y: a[1] + (b[1] - a[1]) * e,
-        lift: moving ? Math.sin(Math.PI * phase) : 0,
+        lift: moving ? Math.sin(Math.PI * phase) : retakes ? 0.3 * Math.sin(Math.PI * phase) : 0,
       };
     }
     return out;

@@ -13,26 +13,31 @@ assert.equal(beatAt(beats.map((b) => b[0]), 1.74), 1);
 
 const near = (a, b) => assert.ok(Math.abs(a - b) < 1e-9, `${a} != ${b}`);
 
-// leader: left foot is back on 1, right foot forward on 5, both home on 3 / 7
-near(at(0).leader.L.y, -1);
-near(at(4).leader.R.y, 1);
-near(at(2).leader.L.y, 0);
-near(at(6).leader.R.y, 0);
-// follower: right foot forward on 1, left foot back on 5
-near(at(0).follower.R.y, 1);
-near(at(4).follower.L.y, -1);
+// leader, count by count
+near(at(0).leader.L.y, -0.4);                       // 1: left foot a bit to the back
+near(at(1).leader.R.y, -1.0);                       // 2: right foot to the very back
+near(at(2).leader.L.y, at(0).leader.L.y);           // 3: left foot on the same spot as on 1
+near(at(4).leader.R.y, 0.4);                        // 5: right foot a bit in front of the center
+near(at(5).leader.L.y, 1.0);                        // 6: left foot steps forward
+near(at(6).leader.R.y, at(4).leader.R.y);           // 7: right foot on the same spot as on 5
+// follower: mirrored (right foot forward on 1)
+near(at(0).follower.R.y, 0.4);
+near(at(1).follower.L.y, 1.0);
+near(at(5).follower.R.y, -1.0);
 
-// feet hold still between counts 3 and 4 and between 7 and 8 (the pauses) ...
-for (const n of [2, 6]) {
-  const a = at(n, 0), b = at(n, 0.9);
+// feet hold still between counts 3 and 4 (the pause) ...
+{
+  const a = at(2, 0), b = at(2, 0.9);
   for (const role of ["leader", "follower"]) for (const foot of ["L", "R"]) {
     near(a[role][foot].y, b[role][foot].y);
     assert.equal(b[role][foot].lift, 0);
   }
 }
-// ... and the stepping foot is in the air on the beat before it lands
+// ... the stepping foot is in the air on the beat before it lands ...
 assert.ok(at(7, 0.5).leader.L.lift > 0.9);      // 8 -> 1: left foot swings back
 assert.ok(at(3, 0.5).leader.R.lift > 0.9);      // 4 -> 5: right foot swings forward
+// ... and a foot that takes the weight again on the same spot only dips a little
+assert.ok(at(1, 0.5).leader.L.lift > 0 && at(1, 0.5).leader.L.lift < 0.5);   // 2 -> 3: left foot back onto its spot
 
 // a foot lands exactly on the beat: position continuous at the beat
 near(frame(beats, beats[8][0] - 1e-9).leader.L.y, frame(beats, beats[8][0]).leader.L.y);
