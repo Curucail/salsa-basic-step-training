@@ -30,7 +30,8 @@
   .panel h2 { font-size: .8rem; letter-spacing: .06em; text-transform: uppercase; color: var(--muted);
               margin: 0 0 8px; font-weight: 600; }
   .mix { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 10px 18px; }
-  label { display: grid; gap: 2px; font-size: .9rem; }
+  label, .field { display: grid; gap: 2px; font-size: .9rem; align-content: start; }
+  .field button { justify-self: start; }
   label .row { display: flex; justify-content: space-between; }
   label .val { color: var(--muted); font-variant-numeric: tabular-nums; }
   input[type=range] { width: 100%; accent-color: var(--accent); }
@@ -38,8 +39,7 @@
                    background: var(--bg); color: var(--fg); cursor: pointer; }
   button.on { background: var(--accent); border-color: var(--accent); color: var(--accent-fg); }
 
-  .view { margin-top: 14px; }
-  .stage { margin-top: 8px; background: #2a1d14; border-radius: 10px; overflow: hidden; }
+  .stage { margin-top: 14px; background: #2a1d14; border-radius: 10px; overflow: hidden; }
   canvas { display: block; width: 100%; height: auto; }
   .counts { display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; margin-top: 10px; }
   .counts span { text-align: center; padding: 6px 0; border-radius: 7px; border: 1px solid var(--line);
@@ -57,8 +57,8 @@
 
   <div class="video"><div id="player"></div></div>
 
-  <section class="panel" aria-label="Mixing">
-    <h2>Mixing</h2>
+  <section class="panel" aria-label="Controls">
+    <h2>Controls</h2>
     <div class="mix">
       <label>
         <span class="row"><span>Music</span><span class="val" id="musicVal">100%</span></span>
@@ -75,11 +75,14 @@
           <option value="ones">1 and 5 only</option>
         </select>
       </label>
+      <div class="field">
+        <span>View</span>
+        <button id="swapView" type="button">View as follower</button>
+      </div>
     </div>
     <p class="status" id="audioStatus" role="status"></p>
   </section>
 
-  <div class="view"><button id="swapView" type="button">View as follower</button></div>
   <div class="stage"><canvas id="stage" width="640" height="560" aria-label="Animation of the salsa on2 basic step"></canvas></div>
   <div class="counts" id="counts" aria-hidden="true"></div>
 </main>
