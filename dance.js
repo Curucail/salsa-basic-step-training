@@ -65,16 +65,24 @@
   /**
    * What the dancers look like at time t. `beats` is [[time, count], ...] ascending.
    * Gaps in the annotation longer than `maxGap` seconds are treated as standing still.
+   * Before the first beat the dancers wait in the pose that leads into it (the end of the previous
+   * count) and swing into the first step during the beat before it, like every other step.
    */
   function frame(beats, t, maxGap = 1.5) {
     const times = beats.map((b) => b[0]);
     const k = beatAt(times, t);
-    const home = () => ({ L: { x: -0.5, y: 0, lift: 0 }, R: { x: 0.5, y: 0, lift: 0 } });   // before the first beat
-    if (k < 0 || k === beats.length - 1 || times[k + 1] - times[k] > maxGap) {
-      const count = k < 0 ? null : beats[k][1];
-      const hold = (role) => (count ? pose(role, count, count, 0) : home(role));
-      return { k, count, phase: 0, landing: { leader: null, follower: null }, glow: 0,
-               leader: hold("leader"), follower: hold("follower") };
+    const still = { landing: { leader: null, follower: null }, glow: 0 };
+    if (k < 0) {
+      const to = beats[0][1], from = to === 1 ? 8 : to - 1;
+      const period = beats.length > 1 ? beats[1][0] - beats[0][0] : 0.5;
+      const phase = Math.min(Math.max((t - (beats[0][0] - period)) / period, 0), 1);
+      return { k, count: null, phase, ...still,
+               leader: pose("leader", from, to, phase), follower: pose("follower", from, to, phase) };
+    }
+    if (k === beats.length - 1 || times[k + 1] - times[k] > maxGap) {
+      const count = beats[k][1];
+      return { k, count, phase: 0, ...still,
+               leader: pose("leader", count, count, 0), follower: pose("follower", count, count, 0) };
     }
     const phase = (t - times[k]) / (times[k + 1] - times[k]);
     const from = beats[k][1], to = beats[k + 1][1];

@@ -27,6 +27,8 @@ python -m http.server 8000     # then open http://localhost:8000
 
 - **Music / Beat clicks**: a click on every step is played over the video (count 1 has a higher pitch). The two
   sliders are the mix between the music and the clicks. *Clicks on* limits them to 1 and 5.
+- **View as follower** swaps the two places on the floor, so the follower's steps are seen from behind (and back).
+  The choice is remembered.
 - The beats were annotated on an audio file, so they are shifted by a fixed -95 ms against the video
   (`SYNC_MS` at the top of `app.js`; a different upload may need another value).
 - The browser blocks sound until you click on the page once; a click inside the video counts.
@@ -40,7 +42,8 @@ Counts 4 and 8 are not stepped on (the free foot is already travelling to where 
 The follower mirrors the leader: what the leader's left foot does, the follower's right foot does the other way round
 (back becomes forward), and vice versa.
 
-A foot lands exactly on its beat; it is already travelling during the beat before. The positions are two small
+A foot lands exactly on its beat; it is already travelling during the beat before. Before the first beat the
+dancers wait in the pose that leads into count 1 and swing into the first step like any other. The positions are two small
 arrays at the top of `dance.js`; change them to try other patterns.
 
 ## Files

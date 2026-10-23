@@ -54,10 +54,17 @@ for (let c = 0; c < 8; c++) {
 }
 assert.deepEqual(Object.keys(LANDS.leader), Object.keys(LANDS.follower));
 
-// before the first beat and after a long gap: standing still, nothing in the air
+// before the first beat: waiting in the pose that leads into count 1 (left foot forward, right foot a bit
+// in front of the center), then swinging into the first step during the beat before it
 const idle = frame(beats, 0.2);
 assert.equal(idle.count, null);
+near(idle.leader.L.y, 1.0);
+near(idle.leader.R.y, 0.4);
 assert.equal(idle.leader.L.lift, 0);
+const lead = frame(beats, 0.75);
+assert.ok(lead.leader.L.lift > 0.9);
+near(frame(beats, 1.0).leader.L.y, -0.4);
+
 const gap = frame([[1, 1], [10, 2]], 5);
 assert.equal(gap.leader.L.lift, 0);
 

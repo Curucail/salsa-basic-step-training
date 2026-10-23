@@ -121,11 +121,15 @@
   canvas.width = W * dpr;
   canvas.height = H * dpr;
 
-  // dir +1: faces up the screen (leader), -1: faces down (follower)
-  const DANCERS = {
-    leader: { cx: W / 2, base: 410, dir: 1, kind: "sneaker", label: "Leader", labelY: H - 16 },
-    follower: { cx: W / 2, base: 150, dir: -1, kind: "heel", label: "Follower", labelY: 28 },
+  // The dancer nearest to the viewer faces up the screen (dir +1), the other faces down (dir -1).
+  // "View as follower" swaps the two places, so the follower's steps are seen from behind.
+  const KINDS = { leader: { kind: "sneaker", label: "Leader" }, follower: { kind: "heel", label: "Follower" } };
+  const SPOTS = {
+    near: { cx: W / 2, base: 410, dir: 1, labelY: H - 16 },
+    far: { cx: W / 2, base: 150, dir: -1, labelY: 28 },
   };
+  let followerView = store.get("view", "leader") === "follower";
+  const dancerOf = (role) => ({ ...KINDS[role], ...SPOTS[(role === "follower") === followerView ? "near" : "far"] });
 
   function drawFloor() {
     const grad = g.createLinearGradient(0, 0, 0, H);
@@ -209,7 +213,7 @@
   }
 
   function drawDancer(role, f) {
-    const dancer = DANCERS[role], pose = f[role];
+    const dancer = dancerOf(role), pose = f[role];
     const order = pose.L.lift > pose.R.lift ? ["R", "L"] : ["L", "R"];     // moving foot on top
     for (const foot of order) {
       drawFoot(dancer, role, foot, pose[foot], f.landing[role] === foot ? f.glow : 0);
@@ -263,6 +267,15 @@
   bind("click", "clickVal", "click", (v) => v + "%", () => { ensureAudio(); if (master) master.gain.value = settings.click / 100; });
   $("mode").value = settings.mode;
   $("mode").addEventListener("change", () => { settings.mode = $("mode").value; store.set("mode", settings.mode); });
+
+  const swap = $("swapView");
+  const showView = () => { swap.textContent = followerView ? "View as leader" : "View as follower"; };
+  showView();
+  swap.addEventListener("click", () => {
+    followerView = !followerView;
+    store.set("view", followerView ? "follower" : "leader");
+    showView();
+  });
 
   // ───────────────────────── YouTube ─────────────────────────
   if (STILL) {

@@ -38,7 +38,8 @@
                    background: var(--bg); color: var(--fg); cursor: pointer; }
   button.on { background: var(--accent); border-color: var(--accent); color: var(--accent-fg); }
 
-  .stage { margin-top: 14px; background: #2a1d14; border-radius: 10px; overflow: hidden; }
+  .view { margin-top: 14px; }
+  .stage { margin-top: 8px; background: #2a1d14; border-radius: 10px; overflow: hidden; }
   canvas { display: block; width: 100%; height: auto; }
   .counts { display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; margin-top: 10px; }
   .counts span { text-align: center; padding: 6px 0; border-radius: 7px; border: 1px solid var(--line);
@@ -78,6 +79,7 @@
     <p class="status" id="audioStatus" role="status"></p>
   </section>
 
+  <div class="view"><button id="swapView" type="button">View as follower</button></div>
   <div class="stage"><canvas id="stage" width="640" height="560" aria-label="Animation of the salsa on2 basic step"></canvas></div>
   <div class="counts" id="counts" aria-hidden="true"></div>
 </main>
