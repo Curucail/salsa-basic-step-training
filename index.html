@@ -60,6 +60,12 @@
 
   <div class="video"><div id="player"></div></div>
 
+  <div class="stage">
+    <canvas id="stage" width="640" height="610" aria-label="Animation of the salsa on2 basic step"></canvas>
+    <button id="swapView" class="viewbtn" type="button">View as follower</button>
+  </div>
+  <div class="counts" id="counts" aria-hidden="true"></div>
+
   <section class="panel" aria-label="Controls">
     <h2>Controls</h2>
     <div class="mix">
@@ -81,12 +87,6 @@
     </div>
     <p class="status" id="audioStatus" role="status"></p>
   </section>
-
-  <div class="stage">
-    <canvas id="stage" width="640" height="610" aria-label="Animation of the salsa on2 basic step"></canvas>
-    <button id="swapView" class="viewbtn" type="button">View as follower</button>
-  </div>
-  <div class="counts" id="counts" aria-hidden="true"></div>
 </main>
 
 <script src="beats.js"></script>
