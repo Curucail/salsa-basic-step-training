@@ -17,11 +17,11 @@ python -m http.server 8000     # then open http://localhost:8000
 
 1. Create an empty repository on GitHub and push this one:
    ```
-   git remote add origin https://github.com/<you>/salsa-on2-viz.git
+   git remote add origin https://github.com/Curucail/salsa-basic-step-training.git
    git push -u origin main
    ```
 2. Repository **Settings → Pages → Build and deployment → Deploy from a branch**, branch `main`, folder `/ (root)`.
-3. The page is at `https://<you>.github.io/salsa-on2-viz/` after a minute.
+3. The page is at `https://curucail.github.io/salsa-basic-step-training/` after a minute.
 
 ## Controls
 
