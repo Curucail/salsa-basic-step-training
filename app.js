@@ -147,35 +147,36 @@
   }
 
   // men's black patent leather dance shoe (oxford), shining
-  function shoePath() {
+  function shoePath() {                  // slim oxford: rounded toe, narrow waist, rounded heel
     g.beginPath();
-    g.moveTo(0, -35);
-    g.bezierCurveTo(11, -35, 14, -24, 13.5, -10);
-    g.bezierCurveTo(13, 6, 12.5, 24, 0, 33);
-    g.bezierCurveTo(-12.5, 24, -13, 6, -13.5, -10);
-    g.bezierCurveTo(-14, -24, -11, -35, 0, -35);
+    g.moveTo(0, -39);
+    g.bezierCurveTo(7, -39, 11.8, -28, 12.4, -12);
+    g.bezierCurveTo(12.8, 4, 11.5, 22, 7, 32);
+    g.bezierCurveTo(4.5, 35.8, -4.5, 35.8, -7, 32);
+    g.bezierCurveTo(-11.5, 22, -12.8, 4, -12.4, -12);
+    g.bezierCurveTo(-11.8, -28, -7, -39, 0, -39);
     g.closePath();
   }
 
   function drawDanceShoe() {
-    g.save(); g.scale(1.09, 1.035); shoePath(); g.fillStyle = "#4a4743"; g.fill(); g.restore();          // sole edge
-    const gloss = g.createLinearGradient(-14, 0, 14, 0);                                                  // lacquered upper
+    g.save(); g.scale(1.1, 1.03); shoePath(); g.fillStyle = "#4a4743"; g.fill(); g.restore();            // sole edge
+    const gloss = g.createLinearGradient(-13, 0, 13, 0);                                                  // lacquered upper
     gloss.addColorStop(0, "#050506"); gloss.addColorStop(0.3, "#2b2c31");
     gloss.addColorStop(0.5, "#0c0c0e"); gloss.addColorStop(1, "#050506");
     shoePath(); g.fillStyle = gloss; g.fill();
     g.strokeStyle = "#000"; g.lineWidth = 1.2; g.stroke();
     g.strokeStyle = "rgba(255,255,255,0.13)"; g.lineWidth = 1; g.lineCap = "round";                      // toe cap seam
-    g.beginPath(); g.moveTo(-12.5, -17); g.quadraticCurveTo(0, -10.5, 12.5, -17); g.stroke();
+    g.beginPath(); g.moveTo(-11.2, -20); g.quadraticCurveTo(0, -13.5, 11.2, -20); g.stroke();
     g.strokeStyle = "rgba(255,255,255,0.22)"; g.lineWidth = 1;                                            // laces
-    for (let i = 0; i < 4; i++) { const y = -7 + i * 4.4; g.beginPath(); g.moveTo(-6, y); g.lineTo(6, y); g.stroke(); }
-    g.beginPath(); g.ellipse(0, 22, 7, 8, 0, 0, Math.PI * 2); g.fillStyle = "#020203"; g.fill();           // ankle opening
+    for (let i = 0; i < 4; i++) { const y = -8 + i * 4.6; g.beginPath(); g.moveTo(-5.6, y); g.lineTo(5.6, y); g.stroke(); }
+    g.beginPath(); g.ellipse(0, 22.5, 6.8, 8, 0, 0, Math.PI * 2); g.fillStyle = "#020203"; g.fill();        // ankle opening
     g.strokeStyle = "rgba(255,255,255,0.18)"; g.lineWidth = 1; g.stroke();
-    g.strokeStyle = "rgba(255,255,255,0.75)"; g.lineWidth = 2.4;                                          // shine on the toe
-    g.beginPath(); g.moveTo(-7.5, -28); g.quadraticCurveTo(-5, -33.5, 2.5, -33.8); g.stroke();
-    g.strokeStyle = "rgba(255,255,255,0.28)"; g.lineWidth = 3.2;                                          // long reflection
-    g.beginPath(); g.moveTo(-8.2, -12); g.quadraticCurveTo(-9.6, 2, -7.2, 14); g.stroke();
-    g.strokeStyle = "rgba(255,255,255,0.14)"; g.lineWidth = 1.6;
-    g.beginPath(); g.moveTo(9.6, -14); g.quadraticCurveTo(10.8, 0, 8.6, 12); g.stroke();
+    g.strokeStyle = "rgba(255,255,255,0.75)"; g.lineWidth = 2.2;                                          // shine on the toe
+    g.beginPath(); g.moveTo(-6.6, -30.5); g.quadraticCurveTo(-4.4, -36, 2, -36.4); g.stroke();
+    g.strokeStyle = "rgba(255,255,255,0.28)"; g.lineWidth = 3;                                            // long reflection
+    g.beginPath(); g.moveTo(-7.8, -14); g.quadraticCurveTo(-9.2, 2, -7, 15); g.stroke();
+    g.strokeStyle = "rgba(255,255,255,0.14)"; g.lineWidth = 1.5;
+    g.beginPath(); g.moveTo(8.8, -16); g.quadraticCurveTo(10, 0, 8.2, 13); g.stroke();
   }
 
   function heelPath() {
