@@ -45,21 +45,28 @@
     return k;
   }
 
-  /** Both feet of a dancer while moving from count `from` to count `to` (1-8), `phase` 0..1. */
-  function pose(role, from, to, phase) {
+  const stateAt = (role, count) => ({ L: FEET[role].L[count - 1], R: FEET[role].R[count - 1] });
+  const CENTERED = { L: [-0.5, 0], R: [0.5, 0] };   // both feet centered: where the dancers start
+
+  /** Both feet moving from the positions `a` to `b` (each {L: [x, y], R: [x, y]}); `to` is the count reached. */
+  function blend(role, a, b, phase, to) {
     const out = {};
+    const e = smooth(phase);
     for (const foot of ["L", "R"]) {
-      const a = FEET[role][foot][from - 1], b = FEET[role][foot][to - 1];
-      const e = smooth(phase);
-      const moving = a[0] !== b[0] || a[1] !== b[1];
+      const moving = a[foot][0] !== b[foot][0] || a[foot][1] !== b[foot][1];
       const retakes = !moving && LANDS[role][to] === foot;   // steps back onto the same spot
       out[foot] = {
-        x: a[0] + (b[0] - a[0]) * e,
-        y: a[1] + (b[1] - a[1]) * e,
+        x: a[foot][0] + (b[foot][0] - a[foot][0]) * e,
+        y: a[foot][1] + (b[foot][1] - a[foot][1]) * e,
         lift: moving ? Math.sin(Math.PI * phase) : retakes ? 0.3 * Math.sin(Math.PI * phase) : 0,
       };
     }
     return out;
+  }
+
+  /** Both feet of a dancer while moving from count `from` to count `to` (1-8), `phase` 0..1. */
+  function pose(role, from, to, phase) {
+    return blend(role, stateAt(role, from), stateAt(role, to), phase, to);
   }
 
   /**
@@ -69,8 +76,8 @@
    * expected one (a relabelled stretch, a missing beat) or the annotation has a gap longer than
    * `maxGap` seconds, the dancers move on to the pose of the next label right away, quickly (in
    * `FAST_SECONDS` at most, half the interval at most), and wait there, so nothing jumps on the beat.
-   * Before the first beat the dancers wait in the pose that leads into it (the end of the previous
-   * count) and swing into the first step during the beat before it, like every other step.
+   * Before the first beat the dancers stand with both feet centered and move into the position of
+   * the first count during the beat before it, like every other step.
    */
   const FAST_SECONDS = 0.35;
 
@@ -79,11 +86,11 @@
     const k = beatAt(times, t);
     const still = { landing: { leader: null, follower: null }, glow: 0 };
     if (k < 0) {
-      const to = beats[0][1], from = to === 1 ? 8 : to - 1;
+      const to = beats[0][1];
       const period = beats.length > 1 ? beats[1][0] - beats[0][0] : 0.5;
       const phase = Math.min(Math.max((t - (beats[0][0] - period)) / period, 0), 1);
-      return { k, count: null, phase, ...still,
-               leader: pose("leader", from, to, phase), follower: pose("follower", from, to, phase) };
+      const lead = (role) => blend(role, CENTERED, stateAt(role, to), phase, to);
+      return { k, count: null, phase, ...still, leader: lead("leader"), follower: lead("follower") };
     }
     if (k === beats.length - 1) {
       const count = beats[k][1];

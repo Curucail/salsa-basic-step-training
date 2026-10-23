@@ -43,7 +43,7 @@ The follower mirrors the leader: what the leader's left foot does, the follower'
 (back becomes forward), and vice versa.
 
 A foot lands exactly on its beat; it is already travelling during the beat before. Before the first beat the
-dancers wait in the pose that leads into count 1 and swing into the first step like any other. The positions are two small
+dancers stand with both feet centered and move into the count-1 position during the beat before it. The positions are two small
 arrays at the top of `dance.js`; change them to try other patterns.
 
 ## Files

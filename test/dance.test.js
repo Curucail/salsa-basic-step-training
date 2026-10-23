@@ -54,13 +54,14 @@ for (let c = 0; c < 8; c++) {
 }
 assert.deepEqual(Object.keys(LANDS.leader), Object.keys(LANDS.follower));
 
-// before the first beat: waiting in the pose that leads into count 1 (left foot forward, right foot a bit
-// in front of the center), then swinging into the first step during the beat before it
+// before the first beat: both feet centered, then settling into count 1 during the beat before it
 const idle = frame(beats, 0.3);
 assert.equal(idle.count, null);
-near(idle.leader.L.y, 1.25);
-near(idle.leader.R.y, 0.3);
-assert.equal(idle.leader.L.lift, 0);
+for (const role of ["leader", "follower"]) {
+  near(idle[role].L.y, 0); near(idle[role].R.y, 0);
+  near(idle[role].L.x, -0.5); near(idle[role].R.x, 0.5);
+  assert.equal(idle[role].L.lift, 0);
+}
 const lead = frame(beats, 0.75);
 assert.ok(lead.leader.L.lift > 0.9);
 near(frame(beats, 1.0).leader.L.y, -0.3);
