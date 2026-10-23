@@ -51,6 +51,13 @@ When the next label is not the expected one (1→2, …, 8→1) the dancers just
 that steps on that label moves, straight to its position, and the other foot stays where it is. After a gap of more
 than 1.5 s in the annotation that foot moves in the last 0.35 s before its beat.
 
+## Title and description
+
+Edit **`content.md`**: the first `# heading` is the page title (also the browser tab title), everything below it is
+the description. Paragraphs, `##` headings, `- ` lists, `**bold**`, `*italic*`, `` `code` `` and `[links](https://…)`
+work; raw HTML is shown as text. (Served over http, as in the steps above; if `content.md` cannot be loaded the page
+keeps the text written in `index.html`.)
+
 ## Updating the beats
 
 After editing the annotation in the beat annotator, copy its csv over `data/tu-con-el.csv` and regenerate `beats.js`:
@@ -65,10 +72,12 @@ python tools/make_beats.py
 | file | |
 | --- | --- |
 | `index.html` | page and styles |
+| `content.md` | page title and description (markdown) |
+| `markdown.js` | the small markdown reader for `content.md` |
 | `app.js` | video clock, click track, drawing, controls |
 | `dance.js` | the step as foot positions per count, and the interpolation between beats |
 | `beats.js` | `[time, count]` for every beat (generated from `data/tu-con-el.csv` by `tools/make_beats.py`) |
 | `data/tu-con-el.csv` | the annotation: `time,position` with position = count 1-8, 1 = downbeat |
-| `test/dance.test.js` | `node test/dance.test.js` |
+| `test/*.test.js` | `node test/dance.test.js`, `node test/markdown.test.js` |
 
 `?t=17.1` shows one still frame of the animation at that time of the song (no video), handy for testing.

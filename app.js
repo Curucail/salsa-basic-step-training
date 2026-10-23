@@ -290,6 +290,20 @@
     showView();
   });
 
+  // ───────────────────────── title and description (content.md) ─────────────────────────
+  fetch("content.md", { cache: "no-cache" })
+    .then((r) => (r.ok ? r.text() : Promise.reject(new Error(r.status))))
+    .then((md) => {
+      const page = SalsaMarkdown.parse(md);
+      if (page.title) { $("title").textContent = page.title; document.title = page.title; }
+      if (page.html) {
+        $("description").innerHTML = page.html;
+        const meta = document.querySelector('meta[name="description"]');
+        if (meta && page.text) meta.setAttribute("content", page.text);
+      }
+    })
+    .catch(() => { /* keep the text that is in index.html */ });
+
   // ───────────────────────── YouTube ─────────────────────────
   if (STILL) {
     document.querySelector(".video").hidden = true;
