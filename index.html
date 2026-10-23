@@ -31,7 +31,10 @@
               margin: 0 0 8px; font-weight: 600; }
   .mix { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 10px 18px; }
   label { display: grid; gap: 2px; font-size: .9rem; }
-  .viewrow { display: flex; justify-content: center; margin-top: 12px; }
+  .stage { position: relative; }
+  .viewbtn { position: absolute; left: 50%; bottom: 14px; transform: translateX(-50%);
+             background: rgba(0, 0, 0, .4); color: #fff; border-color: rgba(255, 255, 255, .4); }
+  .viewbtn:hover { background: rgba(0, 0, 0, .6); }
   label .row { display: flex; justify-content: space-between; }
   label .val { color: var(--muted); font-variant-numeric: tabular-nums; }
   input[type=range] { width: 100%; accent-color: var(--accent); }
@@ -76,11 +79,13 @@
         </select>
       </label>
     </div>
-    <div class="viewrow"><button id="swapView" type="button">View as follower</button></div>
     <p class="status" id="audioStatus" role="status"></p>
   </section>
 
-  <div class="stage"><canvas id="stage" width="640" height="560" aria-label="Animation of the salsa on2 basic step"></canvas></div>
+  <div class="stage">
+    <canvas id="stage" width="640" height="610" aria-label="Animation of the salsa on2 basic step"></canvas>
+    <button id="swapView" class="viewbtn" type="button">View as follower</button>
+  </div>
   <div class="counts" id="counts" aria-hidden="true"></div>
 </main>
 

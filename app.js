@@ -114,7 +114,7 @@
   for (const type of ["pointerdown", "keydown"]) window.addEventListener(type, () => { if (!STILL) ensureAudio(); }, { passive: true });
 
   // ───────────────────────── drawing ─────────────────────────
-  const W = 640, H = 560, S = 80;            // logical canvas size and pixels per step
+  const W = 640, H = 610, S = 80;            // logical canvas size and pixels per step
   const SHOE = 1.2;                          // shoe size relative to the drawn shapes
   const canvas = $("stage"), g = canvas.getContext("2d");
   const dpr = Math.min(window.devicePixelRatio || 1, 2);
