@@ -215,7 +215,7 @@
       drawFoot(dancer, role, foot, pose[foot], f.landing[role] === foot ? f.glow : 0);
     }
     g.font = "600 15px system-ui, sans-serif"; g.fillStyle = "rgba(255,240,225,0.8)"; g.textAlign = "left";
-    g.fillText(`${dancer.label} · ${role === "leader" ? "sneakers" : "heels"}`, 16, dancer.labelY);
+    g.fillText(role === "leader" ? `${dancer.label} · sneakers` : dancer.label, 16, dancer.labelY);
   }
 
   // count ribbon
